@@ -6,7 +6,7 @@ package_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 project_dir = os.path.dirname(package_dir)
 sys.path.insert(0, project_dir)
 
-class TestOpencv(unittest.TestCase):
+class TestModules(unittest.TestCase):
 
     def test_platform(self):
         print(platform.platform())
