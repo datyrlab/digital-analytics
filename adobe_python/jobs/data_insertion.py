@@ -7,7 +7,7 @@ from pprint import pprint
 package_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 project_dir = os.path.dirname(package_dir)
 sys.path.insert(0, project_dir)
-from digital_analytics_python.classes import class_converttime, class_files, class_subprocess
+from adobe_python.classes import class_converttime, class_files, class_subprocess
 
 timestamp_numeric = int(time.time() * 1000.0)
 directory = f"{project_dir}/myfolder/logs"
