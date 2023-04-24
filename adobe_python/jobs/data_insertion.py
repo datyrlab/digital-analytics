@@ -9,6 +9,7 @@ project_dir = os.path.dirname(package_dir)
 sys.path.insert(0, project_dir)
 from adobe_python.classes import class_converttime, class_files, class_subprocess
 
+myplatform = platform.platform()
 timestamp_numeric = int(time.time() * 1000.0)
 directory = f"{project_dir}/myfolder/logs"
 
@@ -31,8 +32,10 @@ def parseRequest(r:dict) -> None:
         
 def getTimestamp() -> int:
     date_time = datetime.datetime.now()
+    if re.search("^Windows", myplatform):
+        return date_time.timestamp()
     return date_time.strftime('%s')
-
+    
 def getCommand(url:str, filepath:str) -> tuple:
     tsinteger = getTimestamp()
     if re.search(".xml$", filepath):
@@ -56,19 +59,17 @@ def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
         os.makedirs(directory)
 
-def getOs():
-    pass
-
 if __name__ == '__main__':
-    time_start = time.time()
-    main()
-    #stop timer
-    time_finish = time.time()
-    start_time = datetime.datetime.fromtimestamp(int(time_start)).strftime('%Y-%m-%d %H:%M:%S')
-    finish_time = datetime.datetime.fromtimestamp(int(time_finish)).strftime('%Y-%m-%d %H:%M:%S')
-    finish_seconds = round(time_finish - time_start,3)
-    t = class_converttime.Converttime(config={}).convert_time({"timestring":finish_seconds}) 
-    print(f"Time start: {start_time}")
-    print(f"Time finish: {finish_time} | Total time: {t.get('ts')}")
+        time_start = time.time()
+        main()
+        #stop timer
+        if re.search("^Linux", myplatform):
+            time_finish = time.time()
+            start_time = datetime.datetime.fromtimestamp(int(time_start)).strftime('%Y-%m-%d %H:%M:%S')
+            finish_time = datetime.datetime.fromtimestamp(int(time_finish)).strftime('%Y-%m-%d %H:%M:%S')
+            finish_seconds = round(time_finish - time_start,3)
+            t = class_converttime.Converttime(config={}).convert_time({"timestring":finish_seconds}) 
+            print(f"Time start: {start_time}")
+            print(f"Time finish: {finish_time} | Total time: {t.get('ts')}")
 
 
