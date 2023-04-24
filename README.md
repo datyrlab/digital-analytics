@@ -43,5 +43,10 @@ discoveryUrl=https://analytics.adobe.io/discovery/me
 analyticsApiUrl=https://analytics.adobe.io/api
 ```
 
+### test JWT connection
+```
+python3 digital-analytics/adobe_python/jobs/ims_client.py 
+```
+
 
 
