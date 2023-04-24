@@ -62,7 +62,8 @@ def get_users_me(config, global_company_id, access_token):
 
 
 config_parser = configparser.ConfigParser()
-config_parser.read("config.ini")
+# location of config.ini set in environment variables
+config_parser.read(os.environ['ADOBE_CONFIG'])
 
 config = dict(config_parser["default"])
 jwt_token = get_jwt_token(config)
