@@ -14,8 +14,8 @@ class TestOpencv(unittest.TestCase):
     def test_env(self):
         print(os.environ)
 
-    def test_env(self):
-        print(f"\033[1;33mADOBE_CONFIG: {os.environ['ADOBE_CONFIG']}\033[0m")
+    def test_env_adobe(self):
+        print("ADOBE_CONFIG", os.environ['ADOBE_CONFIG'])
 
 
 
