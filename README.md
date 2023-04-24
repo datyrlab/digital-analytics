@@ -4,12 +4,12 @@
 
 ### Linux
 ```
-python3 myprojects/digital-analytics-python/digital_analytics_python/jobs/data_insertion.py \
---re '{"type":"test", "url":"xxxx", "rsid":"xxxx", "marketingcloudorgid":"xxxx", "eventlist":[{"pageUrl":"https://example.com", "pageName":"Data Insertion API test (POST)"}]}'
+python3 digital-analytics/adobe_python/jobs/data_insertion.py \
+--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "eventlist":["myfolder/adobe-events/test.xml"]}'
 ```
 
 ### Windows
 ```
-python myprojects/digital-analytics-python/digital_analytics_python/jobs/data_insertion.py `
---re '{"type":"test", "url":"xxxx", "rsid":"xxxx", "marketingcloudorgid":"xxxx", "eventlist":[{"pageUrl":"https://example.com", "pageName":"Data Insertion API test (POST)"}]}'
+python3 digital-analytics/adobe_python/jobs/data_insertion.py `
+--re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
 ```
