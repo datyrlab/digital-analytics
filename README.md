@@ -16,6 +16,8 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 
 ## config.ini (JWT connections)
 ````
+[default]
+
 #Go to https://console.adobe.io -> Select your integration and copy the client credential from "Overview"
 #API Key (Client ID)
 apiKey=API_KEY
