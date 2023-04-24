@@ -34,7 +34,9 @@ def get_access_token(config, jwt_token):
     logger.info("Post body: {}".format(post_body))
 
     response = requests.post(config["imsexchange"], data=post_body)
-    return response.json()["access_token"]
+    
+    print("RESPONSE ===>", response.json)
+    #return response.json()["access_token"]
 
 
 def get_first_global_company_id(config, access_token):
@@ -70,6 +72,9 @@ config = dict(config_parser["default"])
 jwt_token = get_jwt_token(config)
 logger.info("JWT Token: {}".format(jwt_token))
 access_token = get_access_token(config, jwt_token)
+
+
+"""
 logger.info("Access Token: {}".format(access_token))
 
 global_company_id = get_first_global_company_id(config, access_token)
@@ -77,5 +82,5 @@ logger.info("global_company_id: {}".format(global_company_id))
 
 response = get_users_me(config, global_company_id, access_token)
 logger.info("users/me response: {}".format(response))
-
+"""
 
