@@ -15,7 +15,7 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 ```
 
 ## config.ini (JWT connections)
-````
+```
 [default]
 
 #Go to https://console.adobe.io -> Select your integration and copy the client credential from "Overview"
@@ -48,7 +48,8 @@ analyticsApiUrl=https://analytics.adobe.io/api
 
 ### test JWT connection
 ```
-python3 digital-analytics/adobe_python/jobs/ims_client.py 
+# returns an access token
+python3 digital-analytics/adobe_python/tests/test_JWTaccesstoken.py
 ```
 
 
