@@ -1,4 +1,4 @@
-# Dgital Analytics tools
+# Digital Analytics tools
 
 ## Adobe Analytics Data Insertion
 
