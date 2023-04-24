@@ -60,16 +60,16 @@ def makeDirectory(directory:str) -> None:
         os.makedirs(directory)
 
 if __name__ == '__main__':
-        time_start = time.time()
-        main()
-        #stop timer
-        if re.search("^Linux", myplatform):
-            time_finish = time.time()
-            start_time = datetime.datetime.fromtimestamp(int(time_start)).strftime('%Y-%m-%d %H:%M:%S')
-            finish_time = datetime.datetime.fromtimestamp(int(time_finish)).strftime('%Y-%m-%d %H:%M:%S')
-            finish_seconds = round(time_finish - time_start,3)
-            t = class_converttime.Converttime(config={}).convert_time({"timestring":finish_seconds}) 
-            print(f"Time start: {start_time}")
-            print(f"Time finish: {finish_time} | Total time: {t.get('ts')}")
+    time_start = time.time()
+    main()
+    #stop timer
+    if re.search("^Linux", myplatform):
+        time_finish = time.time()
+        start_time = datetime.datetime.fromtimestamp(int(time_start)).strftime('%Y-%m-%d %H:%M:%S')
+        finish_time = datetime.datetime.fromtimestamp(int(time_finish)).strftime('%Y-%m-%d %H:%M:%S')
+        finish_seconds = round(time_finish - time_start,3)
+        t = class_converttime.Converttime(config={}).convert_time({"timestring":finish_seconds}) 
+        print(f"Time start: {start_time}")
+        print(f"Time finish: {finish_time} | Total time: {t.get('ts')}")
 
 
