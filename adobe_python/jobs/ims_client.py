@@ -6,10 +6,6 @@ import datetime
 import requests
 import jwt
 
-logging.basicConfig(level="INFO")
-logger = logging.getLogger()
-
-
 def get_jwt_token(config):
     with open(config["key_path"], 'r') as file:
         private_key = file.read()
@@ -30,13 +26,8 @@ def get_access_token(config, jwt_token):
         "jwt_token": jwt_token
     }
 
-    logger.info("Sending 'POST' request to {}".format(config["imsexchange"]))
-    logger.info("Post body: {}".format(post_body))
-
     response = requests.post(config["imsexchange"], data=post_body)
-    
-    print("RESPONSE ===>", response.json)
-    #return response.json()["access_token"]
+    return response.json()["access_token"]
 
 
 def get_first_global_company_id(config, access_token):
@@ -64,23 +55,11 @@ def get_users_me(config, global_company_id, access_token):
     return response.json()
 
 
-config_parser = configparser.ConfigParser()
-# location of config.ini set in environment variables
-config_parser.read(os.environ['ADOBE_CONFIG'])
+def getAccessToken() -> str:
+    config_parser = configparser.ConfigParser()
+    config_parser.read(os.environ['ADOBE_CONFIG'])
+    config = dict(config_parser["default"])
+    jwt_token = get_jwt_token(config)
+    return get_access_token(config, jwt_token)
 
-config = dict(config_parser["default"])
-jwt_token = get_jwt_token(config)
-logger.info("JWT Token: {}".format(jwt_token))
-access_token = get_access_token(config, jwt_token)
-
-
-"""
-logger.info("Access Token: {}".format(access_token))
-
-global_company_id = get_first_global_company_id(config, access_token)
-logger.info("global_company_id: {}".format(global_company_id))
-
-response = get_users_me(config, global_company_id, access_token)
-logger.info("users/me response: {}".format(response))
-"""
 

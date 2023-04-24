@@ -33,8 +33,8 @@ secret=SECRET
 
 #From "JWT" section of the integration
 #scopes e.g. ent_analytics_bulk_ingest_sdk from "https://ims-na1.adobelogin.com/s/ent_analytics_bulk_ingest_sdk"
-# https://ims-na1.adobelogin.com/s/ent_analytics_bulk_ingest_sdk
-metascopes=ent_analytics_bulk_ingest_sdk
+#metascopes=ent_analytics_bulk_ingest_sdk
+metascopes=ent_dataservices_sdk
 
 #Path to secret.key file for the certificate uploaded in console.adobe.io integration
 key_path=secret.key
