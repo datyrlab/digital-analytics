@@ -38,34 +38,44 @@ def getTimestamp() -> int:
     return date_time.strftime('%s')
     
 def getCommand(url:str, filepath:str) -> tuple:
-    tsinteger = getTimestamp()
+    c = class_files.Files({}).readFile(filepath)
     if re.search(".xml$", filepath):
-        c = class_files.Files({}).readFile(filepath)
+        tsinteger = getTimestamp()
         data = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
         logfile = f"{directory}/{tsinteger}.xml" 
-        return (logfile, data, f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\"")
+        return {"logfile":logfile, "data":data, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
     
     elif re.search(".json$", filepath):
-        t = ims_client.getAccessToken()
+        tsformat = getTimestampFormat()
+        
+        """t = ims_client.getAccessToken()
+        data = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
+        logfile = f"{directory}/{tsinteger}.json"
         s = []
         s.append(f"curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId=xxxxxx\"")
         s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
-        s.append(f"-H \"x-gw-ims-org-id: {t.get('orgId')}\"")
-        s.append(f"-H \"x-api-key: {t.get('apiKey')}\"")
+        s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
+        s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
         s.append(f"-H \"Content-Type: application/json\"")
         s.append(f"-d \"{data}\"")
         command = " ".join(s)
         print("command: ", command)
-        logfile = f"{directory}/{tsinteger}.json"
-        return (logfile, None, filepath)
+        return {"logfile":logfile, "data":data, "command":command}
+        """
 
+def getTimestampFormat() -> int:
+    date_time = datetime.datetime.utcnow()
+    t = date_time.strftime("%Y-%m-%dT%H:%M:%f:%z")
+    print(t)
+
+    
 def sendCommand(index:int, url:str, filepath:str) -> None:
-    logfile, data, command = getCommand(url, filepath)
-    if isinstance(data, str):
-        run = class_subprocess.Subprocess({}).run(command)
+    d = getCommand(url, filepath)
+    if isinstance(d, dict):
+        run = class_subprocess.Subprocess({}).run(d.get('command'))
         if re.search("SUCCESS", run):
             makeDirectory(directory)
-            class_files.Files({}).writeFile({"file":logfile, "content":data})     
+            class_files.Files({}).writeFile({"file":d.get('logfile'), "content":d.get('data')})     
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
