@@ -46,7 +46,18 @@ def getCommand(url:str, filepath:str) -> tuple:
         return (logfile, data, f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\"")
     
     elif re.search(".json$", filepath):
-        pass
+        t = ims_client.getAccessToken())
+        s = []
+        s.append("curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId=xxxxxx\"")
+        s.append("-H \"Authorization: Bearer {t.get('token')}\"")
+        s.append("-H \"x-gw-ims-org-id: {t.get('orgId')}\"")
+        s.append("-H \"x-api-key: {t.get('apiKey')}\"")
+        s.append("-H \"Content-Type: application/json\"")
+        s.append("-d \"{data}\"")
+        command = " ".join(s)
+        print("command: ", command)
+        logfile = f"{directory}/{tsinteger}.json"
+        return (logfile, None, filepath)
 
 def sendCommand(index:int, url:str, filepath:str) -> None:
     logfile, data, command = getCommand(url, filepath)

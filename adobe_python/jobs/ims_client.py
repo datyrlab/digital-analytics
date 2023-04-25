@@ -55,11 +55,10 @@ def get_users_me(config, global_company_id, access_token):
     return response.json()
 
 
-def getAccessToken() -> str:
+def getAccessToken() -> dict:
     config_parser = configparser.ConfigParser()
     config_parser.read(os.environ['ADOBE_CONFIG'])
     config = dict(config_parser["default"])
     jwt_token = get_jwt_token(config)
-    return get_access_token(config, jwt_token)
-
+    return {"token":get_access_token(config, jwt_token), "orgId":config.get('orgId'), "apiKey":config.get('apiKey')}
 
