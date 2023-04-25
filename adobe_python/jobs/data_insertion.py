@@ -53,7 +53,8 @@ def getCommand(url:str, filepath:str) -> tuple:
         tsformat = getTimestampFormat()
         t = ims_client.getAccessToken()
         data = class_files.Files({}).readJson(filepath)
-        data["event"]["xdm"]["timestamp"] = tsformat if isinstance(data.get('event',{}).get('xdm'), dict) else None
+        if isinstance(data.get('event',{}).get('xdm'), dict):
+            data["event"]["xdm"]["timestamp"] = tsformat 
         logfile = f"{directory}/{tsinteger}.json"
         s = []
         s.append(f"curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId=xxxxxx\"")
