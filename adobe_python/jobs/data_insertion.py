@@ -46,7 +46,7 @@ def getCommand(url:str, filepath:str) -> tuple:
         return (logfile, data, f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\"")
     
     elif re.search(".json$", filepath):
-        t = ims_client.getAccessToken())
+        t = ims_client.getAccessToken()
         s = []
         s.append("curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId=xxxxxx\"")
         s.append("-H \"Authorization: Bearer {t.get('token')}\"")
