@@ -48,12 +48,12 @@ def getCommand(url:str, filepath:str) -> tuple:
     elif re.search(".json$", filepath):
         t = ims_client.getAccessToken()
         s = []
-        s.append("curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId=xxxxxx\"")
-        s.append("-H \"Authorization: Bearer {t.get('token')}\"")
-        s.append("-H \"x-gw-ims-org-id: {t.get('orgId')}\"")
-        s.append("-H \"x-api-key: {t.get('apiKey')}\"")
-        s.append("-H \"Content-Type: application/json\"")
-        s.append("-d \"{data}\"")
+        s.append(f"curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId=xxxxxx\"")
+        s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
+        s.append(f"-H \"x-gw-ims-org-id: {t.get('orgId')}\"")
+        s.append(f"-H \"x-api-key: {t.get('apiKey')}\"")
+        s.append(f"-H \"Content-Type: application/json\"")
+        s.append(f"-d \"{data}\"")
         command = " ".join(s)
         print("command: ", command)
         logfile = f"{directory}/{tsinteger}.json"
