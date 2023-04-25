@@ -63,8 +63,7 @@ def getCommand(url:str, filepath:str) -> tuple:
         s.append(f"-H \"Content-Type: application/json\"")
         s.append(f"-d \"{data}\"")
         command = " ".join(s)
-        print("command: ", command)
-        #return {"logfile":logfile, "data":data, "command":command}
+        return {"logfile":logfile, "data":data, "command":command}
 
 def sendCommand(index:int, url:str, filepath:str) -> None:
     d = getCommand(url, filepath)
