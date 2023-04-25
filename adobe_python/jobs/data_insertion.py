@@ -37,19 +37,23 @@ def getTimestamp() -> int:
         return date_time.timestamp()
     return date_time.strftime('%s')
     
+def getTimestampFormat() -> int:
+    s = datetime.datetime.utcnow().isoformat()
+    return f"{s[:-3]}Z"
+
 def getCommand(url:str, filepath:str) -> tuple:
-    c = class_files.Files({}).readFile(filepath)
+    tsinteger = getTimestamp()
     if re.search(".xml$", filepath):
-        tsinteger = getTimestamp()
+        c = class_files.Files({}).readFile(filepath)
         data = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
         logfile = f"{directory}/{tsinteger}.xml" 
         return {"logfile":logfile, "data":data, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
-        
-        """t = ims_client.getAccessToken()
-        data = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
+        t = ims_client.getAccessToken()
+        data = class_files.Files({}).readJson(filepath)
+        data["event"]["xdm"]["timestamp"] = tsformat if isinstance(j.get('event',{}).get('xdm'), dict) else None
         logfile = f"{directory}/{tsinteger}.json"
         s = []
         s.append(f"curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId=xxxxxx\"")
@@ -60,15 +64,8 @@ def getCommand(url:str, filepath:str) -> tuple:
         s.append(f"-d \"{data}\"")
         command = " ".join(s)
         print("command: ", command)
-        return {"logfile":logfile, "data":data, "command":command}
-        """
+        #return {"logfile":logfile, "data":data, "command":command}
 
-def getTimestampFormat() -> int:
-    date_time = datetime.datetime.utcnow()
-    t = date_time.strftime("%Y-%m-%dT%H:%M:%f:%z")
-    print(t)
-
-    
 def sendCommand(index:int, url:str, filepath:str) -> None:
     d = getCommand(url, filepath)
     if isinstance(d, dict):
