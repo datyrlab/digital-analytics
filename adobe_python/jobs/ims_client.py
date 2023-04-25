@@ -60,5 +60,5 @@ def getAccessToken() -> dict:
     config_parser.read(os.environ['ADOBE_CONFIG'])
     config = dict(config_parser["default"])
     jwt_token = get_jwt_token(config)
-    return {"token":get_access_token(config, jwt_token), "orgId":config.get('orgId'), "apiKey":config.get('apiKey')}
+    return {"token":get_access_token(config, jwt_token), "orgid":config.get('orgid'), "apikey":config.get('apikey')}
 
