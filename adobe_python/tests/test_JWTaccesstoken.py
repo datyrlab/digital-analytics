@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import json, os, platform, re, sys, unittest, time
-import configparser
 
 package_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 project_dir = os.path.dirname(package_dir)
