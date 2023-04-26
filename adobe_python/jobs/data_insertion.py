@@ -77,8 +77,8 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
     if isinstance(r, dict):
         run = class_subprocess.Subprocess({}).run(r.get('command'))
         
-        print(f"\033[0;37;45m{r.get('data')}\033[0m")
-        print(f"\033[1;30;47m{run}\033[0m")
+        print(f"\n{r.get('command')}\033[0m")
+        print(f"\n[1;30;47m{run}\033[0m")
 
         #if re.search("SUCCESS", run):
         #    makeDirectory(dir_log)
