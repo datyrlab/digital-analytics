@@ -55,8 +55,8 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
-        #t = ims_client.getAccessToken()
-        t={}
+        #t={}
+        t = ims_client.getAccessToken()
         data = class_files.Files({}).readJson(filepath)
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             data["event"]["xdm"]["_id"] = randomUniqueString()
