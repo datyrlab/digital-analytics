@@ -68,7 +68,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
         s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
         s.append(f"-H \"Content-Type: application/json\"")
-        s.append(f"-d \"{data}\"")
+        s.append(f"-d \"{json.dumps(data)}\"")
         command = " ".join(s)
         return {"logfile":logfile, "data":data, "command":command}
 
@@ -77,8 +77,8 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
     if isinstance(r, dict):
         run = class_subprocess.Subprocess({}).run(r.get('command'))
         
-        print(f"\n{r.get('command')}\033[0m")
-        print(f"\n[1;30;47m{run}\033[0m")
+        print(f"\n{r.get('command')}\n")
+        print(f"\n[1;30;47m{run}")
 
         #if re.search("SUCCESS", run):
         #    makeDirectory(dir_log)
