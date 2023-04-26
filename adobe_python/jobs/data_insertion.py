@@ -55,7 +55,6 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
-        #t={}
         t = ims_client.getAccessToken()
         data = class_files.Files({}).readJson(filepath)
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
@@ -78,7 +77,7 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
         run = class_subprocess.Subprocess({}).run(r.get('command'))
         
         print(f"\n{r.get('command')}\n")
-        print(f"\n[1;30;47m{run}")
+        print(f"\n{run}")
 
         #if re.search("SUCCESS", run):
         #    makeDirectory(dir_log)
