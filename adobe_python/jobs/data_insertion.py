@@ -75,12 +75,11 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
 def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request.get('url'), request.get('streamid'), filepath)
     if isinstance(r, dict):
-        print(r) 
-        """run = class_subprocess.Subprocess({}).run(r.get('command'))
-        if re.search("SUCCESS", run):
-            makeDirectory(dir_log)
-            class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})     
-        """
+        run = class_subprocess.Subprocess({}).run(r.get('command'))
+        print("===>", run)
+        #if re.search("SUCCESS", run):
+        #    makeDirectory(dir_log)
+        #    class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})     
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
