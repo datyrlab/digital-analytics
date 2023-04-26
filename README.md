@@ -14,7 +14,7 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 --re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
 ```
 
-## Adobe Experience Cloud > Data Collection > Datastream, json/xdm
+## Adobe Experience Platform > Data Collection > Datastream, json/xdm
 ### Linux
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \

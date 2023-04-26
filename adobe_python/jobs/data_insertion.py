@@ -76,7 +76,10 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request.get('url'), request.get('streamid'), filepath)
     if isinstance(r, dict):
         run = class_subprocess.Subprocess({}).run(r.get('command'))
-        print("===>", run)
+        
+        print(f"\033[0;37;45m{data}\033[0m")
+        print(f"\033[1;30;47m{run}\033[0m")
+
         #if re.search("SUCCESS", run):
         #    makeDirectory(dir_log)
         #    class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})     
