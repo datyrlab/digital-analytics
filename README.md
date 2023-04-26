@@ -18,13 +18,13 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 ### Linux
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", eventlist":["myfolder/adobe-events/test.xml"]}'
+--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", eventlist":["adobe_python/json/test.xml"]}'
 ```
 
 ### Windows
 ```
 python digital-analytics/adobe_python/jobs/data_insertion.py `
---re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"streamid\":\"xxxxxx\", "eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
+--re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"streamid\":\"xxxxxx\", "eventlist\":[\"adobe_python/json/test.xml\"]}'
 ```
 
 ## API 2.0 (config.ini, JWT connection)
