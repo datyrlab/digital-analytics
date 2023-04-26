@@ -12,7 +12,7 @@ from adobe_python.jobs import ims_client
 
 myplatform = platform.platform()
 timestamp_numeric = int(time.time() * 1000.0)
-directory = f"{project_dir}/myfolder/logs"
+dir_log = f"{project_dir}/myfolder/logs"
 
 def main():
     request = parseArgs(sys.argv)
@@ -29,7 +29,7 @@ def parseArgs(argv) -> tuple:
 
 def parseRequest(r:dict) -> None:
     if isinstance(r, dict) and isinstance(r.get('eventlist'), list) and len(r.get('eventlist')) > 0:
-        [(lambda x: sendCommand(i, r.get('url'), f"{project_dir}/{x}"))(x) for i, x in enumerate(r.get('eventlist'))]
+        [(lambda x: sendCommand(i, r, f"{project_dir}/{x}"))(x) for i, x in enumerate(r.get('eventlist'))]
         
 def getTimestamp() -> int:
     date_time = datetime.datetime.now()
@@ -41,23 +41,29 @@ def getTimestampFormat() -> int:
     s = datetime.datetime.utcnow().isoformat()
     return f"{s[:-3]}Z"
 
-def getCommand(url:str, filepath:str) -> tuple:
+def randomUniqueString():
+    import uuid
+    return uuid.uuid4().hex[:25].upper()
+
+def getCommand(url:str, streamid:str, filepath:str) -> dict:
     tsinteger = getTimestamp()
     if re.search(".xml$", filepath):
         c = class_files.Files({}).readFile(filepath)
         data = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
-        logfile = f"{directory}/{tsinteger}.xml" 
+        logfile = f"{dir_log}/{tsinteger}.xml" 
         return {"logfile":logfile, "data":data, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
-        t = ims_client.getAccessToken()
+        #t = ims_client.getAccessToken()
+        t={}
         data = class_files.Files({}).readJson(filepath)
-        if isinstance(data.get('event',{}).get('xdm'), dict):
+        if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
+            data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat 
-        logfile = f"{directory}/{tsinteger}.json"
+        logfile = f"{dir_log}/{tsinteger}.json"
         s = []
-        s.append(f"curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId=xxxxxx\"")
+        s.append(f"curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
         s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
         s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
         s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
@@ -66,13 +72,15 @@ def getCommand(url:str, filepath:str) -> tuple:
         command = " ".join(s)
         return {"logfile":logfile, "data":data, "command":command}
 
-def sendCommand(index:int, url:str, filepath:str) -> None:
-    d = getCommand(url, filepath)
-    if isinstance(d, dict):
-        run = class_subprocess.Subprocess({}).run(d.get('command'))
+def sendCommand(index:int, request:dict, filepath:str) -> None:
+    r = getCommand(request.get('url'), request.get('streamid'), filepath)
+    if isinstance(r, dict):
+        print(r) 
+        """run = class_subprocess.Subprocess({}).run(r.get('command'))
         if re.search("SUCCESS", run):
-            makeDirectory(directory)
-            class_files.Files({}).writeFile({"file":d.get('logfile'), "content":d.get('data')})     
+            makeDirectory(dir_log)
+            class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})     
+        """
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):

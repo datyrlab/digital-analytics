@@ -1,6 +1,6 @@
 # Digital Analytics tools
 
-## Adobe Analytics Data Insertion
+## Adobe Analytics Data Insertion, XML
 
 ### Linux
 ```
@@ -14,7 +14,20 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 --re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
 ```
 
-## config.ini (JWT connections)
+## Adobe Experience Cloud > Data Collection > Datastream, json/xdm
+### Linux
+```
+python3 digital-analytics/adobe_python/jobs/data_insertion.py \
+--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", eventlist":["myfolder/adobe-events/test.xml"]}'
+```
+
+### Windows
+```
+python digital-analytics/adobe_python/jobs/data_insertion.py `
+--re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"streamid\":\"xxxxxx\", "eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
+```
+
+## API 2.0 (config.ini, JWT connection)
 ```
 [default]
 
@@ -46,7 +59,7 @@ discoveryUrl=https://analytics.adobe.io/discovery/me
 analyticsApiUrl=https://analytics.adobe.io/api
 ```
 
-### test JWT connection
+### Test JWT connection
 ```
 # returns an access token
 python3 digital-analytics/adobe_python/tests/test_JWTaccesstoken.py
