@@ -61,13 +61,14 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat 
         logfile = f"{dir_log}/{tsinteger}.json"
+        d = json.dumps(data).replace('"', '\\"')
         s = []
         s.append(f"curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
         s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
         s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
         s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
         s.append(f"-H \"Content-Type: application/json\"")
-        s.append(f"-d '{json.dumps(data).replace('"', '\\"')}'")
+        s.append(f"-d '{d}'")
         command = " ".join(s)
         return {"logfile":logfile, "data":data, "command":command}
 
