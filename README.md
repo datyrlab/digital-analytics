@@ -1,6 +1,6 @@
 # Digital Analytics tools
 
-## Adobe Analytics Data Insertion, XML
+## Data Insertion
 
 ### Linux
 ```
@@ -14,7 +14,7 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 --re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
 ```
 
-## Adobe Experience Platform > Data Collection > Datastream, json/xdm
+## Datastream
 ### Linux
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
@@ -27,7 +27,7 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 --re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"streamid\":\"xxxxxx\", "eventlist\":[\"adobe_python/json/test.xml\"]}'
 ```
 
-## API 2.0 (config.ini, JWT connection)
+## Config.ini, JWT connection
 ```
 [default]
 

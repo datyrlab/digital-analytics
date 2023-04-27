@@ -67,7 +67,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
         s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
         s.append(f"-H \"Content-Type: application/json\"")
-        s.append(f"-d '{json.dumps(data)}'")
+        s.append(f"-d '{json.dumps(data).replace('"', '\\"')}'")
         command = " ".join(s)
         return {"logfile":logfile, "data":data, "command":command}
 
