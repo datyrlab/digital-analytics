@@ -12,8 +12,9 @@ from adobe_python.jobs import ims_client
 
 myplatform = platform.platform()
 timestamp_numeric = int(time.time() * 1000.0)
-dir_data = f"{project_dir}/myfolder/data"
+dir_data = f"{project_dir}/myfolder/tmp"
 dir_log = f"{project_dir}/myfolder/logs"
+dir_response = f"{project_dir}/myfolder/response"
 
 def main():
     request = parseArgs(sys.argv)
@@ -84,6 +85,8 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request.get('url'), request.get('streamid'), filepath)
     if isinstance(r, dict):
         run = class_subprocess.Subprocess({}).run(r.get('command'))
+        print(type(run))
+        print(run)
         if re.search("SUCCESS", run):
             makeDirectory(dir_log)
             class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})     
