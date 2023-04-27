@@ -91,7 +91,8 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
             try:
                 directory_response = f"{dir_response}/{r.get('date')}"
                 directory_log = f"{dir_log}/{r.get('date')}"
-                makeDirectory(directory)
+                makeDirectory(directory_response)
+                makeDirectory(directory_log)
                 response = json.loads("{\""+ run +"}")
                 class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{r.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)})  
                 class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('date')}.json", "content":json.dumps(r.get('data'), sort_keys=False, default=str)})  
