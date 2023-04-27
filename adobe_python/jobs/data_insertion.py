@@ -89,10 +89,11 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
             makeDirectory(dir_log)
             class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
         elif re.search("^requestId", run):
-            print(run)
+            #print(run)
             try:
                 makeDirectory(dir_response)
                 response = json.loads(f"{{ {run} }}")
+                print("response", response)
                 class_files.Files({}).writeFile({"file":f"{dir_response}/{response.get('requestId')}", "content":response})  
                 class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
             except Exception as e:
