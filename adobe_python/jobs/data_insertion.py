@@ -72,7 +72,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         s.append(f"-H \"Content-Type: application/json\"")
         s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{json.dumps(data)}'")
         command = " ".join(s)
-        return {"logfile":logfile, "data":data, "command":command}
+        return {"logfile":logfile, "date":tsinteger.strftime("%Y/%m/%d"), "time":tsinteger, "data":data, "command":command}
 
 def useFile(data):
     makeDirectory(dir_data)
@@ -89,12 +89,13 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
             makeDirectory(dir_log)
             class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
         elif re.search("^requestId", run):
-            #print(run)
             try:
-                makeDirectory(dir_response)
+                directory = f"{dir_response}/{r.get('date')}"
+                makeDirectory(directory)
                 response = json.loads("{\""+ run +"}")
-                print("response", response)
-                class_files.Files({}).writeFile({"file":f"{dir_response}/{response.get('requestId')}", "content":response})  
+                print(response)
+
+                class_files.Files({}).writeFile({"file":f"{directory}/{response.get('requestId')}_{r.get('time')}.json", "content":response})  
                 class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
             except Exception as e:
                 print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
