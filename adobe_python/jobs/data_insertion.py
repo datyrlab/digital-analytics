@@ -12,7 +12,7 @@ from adobe_python.jobs import ims_client
 
 myplatform = platform.platform()
 timestamp_numeric = int(time.time() * 1000.0)
-dir_data = f"{project_dir}/myfolder/tmp"
+dir_tmp = f"{project_dir}/myfolder/tmp"
 dir_log = f"{project_dir}/myfolder/logs"
 dir_response = f"{project_dir}/myfolder/response"
 
@@ -52,8 +52,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
     if re.search(".xml$", filepath):
         c = class_files.Files({}).readFile(filepath)
         data = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
-        logfile = f"{dir_log}/{tsinteger}.xml" 
-        return {"logfile":logfile, "data":data, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
+        return {"data":data, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
@@ -62,7 +61,6 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat 
-        logfile = f"{dir_log}/{tsinteger}.json"
         s = []
         s.append(f"curl.exe") if re.search("^Windows", myplatform) else s.append("curl")
         s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
@@ -72,11 +70,11 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         s.append(f"-H \"Content-Type: application/json\"")
         s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{json.dumps(data)}'")
         command = " ".join(s)
-        return {"logfile":logfile, "date":datetime.datetime.now().strftime("%Y%m%d"), "time":tsinteger, "data":data, "command":command}
+        return {"date":datetime.datetime.now().strftime("%Y%m%d"), "time":tsinteger, "data":data, "command":command}
 
 def useFile(data):
-    makeDirectory(dir_data)
-    filepath = f"{dir_data}/data.json"
+    makeDirectory(dir_tmp)
+    filepath = f"{dir_tmp}/data.json"
     os.remove(filepath) if os.path.exists(filepath) else None
     class_files.Files({}).writeFile({"file":filepath, "content":json.dumps(data, sort_keys=False, default=str)})
     return filepath
@@ -86,15 +84,17 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
     if isinstance(r, dict):
         run = class_subprocess.Subprocess({}).run(r.get('command'))
         if re.search("SUCCESS", run):
-            makeDirectory(dir_log)
-            class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
+            directory_log = f"{dir_log}/{r.get('date')}"
+            makeDirectory(directory_log)
+            class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('date')}.xml", "content":r.get('data')})  
         elif re.search("^requestId", run):
             try:
-                directory = f"{dir_response}/{r.get('date')}"
+                directory_response = f"{dir_response}/{r.get('date')}"
+                directory_log = f"{dir_log}/{r.get('date')}"
                 makeDirectory(directory)
                 response = json.loads("{\""+ run +"}")
-                class_files.Files({}).writeFile({"file":f"{directory}/{response.get('requestId')}_{r.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)})  
-                class_files.Files({}).writeFile({"file":r.get('logfile'), "content":json.dumps(r.get('data'), sort_keys=False, default=str)})  
+                class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{r.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)})  
+                class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('date')}.json", "content":json.dumps(r.get('data'), sort_keys=False, default=str)})  
                 print("requestId:", response.get('requestId'))
             except Exception as e:
                 print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
