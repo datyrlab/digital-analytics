@@ -13,6 +13,7 @@ from adobe_python.jobs import ims_client
 myplatform = platform.platform()
 timestamp_numeric = int(time.time() * 1000.0)
 dir_log = f"{project_dir}/myfolder/logs"
+dir_data = f"{project_dir}/myfolder/data"
 
 def main():
     request = parseArgs(sys.argv)
@@ -70,10 +71,18 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
         s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
         s.append(f"-H \"Content-Type: application/json\"")
-        s.append(f"-d '{json.dumps(data)}'")
+        #s.append(f"-d '{json.dumps(data)}'")
         #s.append(f"-d \"{d}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{d}'")
+        s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{data}'")
         command = " ".join(s)
         return {"logfile":logfile, "data":data, "command":command}
+
+def useFile(data):
+    makeDirectory(dir_data)
+    filepath = f"{dir_data}/data.json"
+    os.remove(filepath) if os.path.exists(filepath) else None
+    class_files.Files({}).writeFile({"file":filepath, "content":json.dumps(data, sort_keys=False, default=str)})
+    return filepath
 
 def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request.get('url'), request.get('streamid'), filepath)
@@ -95,7 +104,7 @@ if __name__ == '__main__':
     time_start = time.time()
     main()
     #stop timer
-    if re.search("^Linux", myplatform):
+    if not re.search("^Windows", myplatform):
         time_finish = time.time()
         start_time = datetime.datetime.fromtimestamp(int(time_start)).strftime('%Y-%m-%d %H:%M:%S')
         finish_time = datetime.datetime.fromtimestamp(int(time_finish)).strftime('%Y-%m-%d %H:%M:%S')
