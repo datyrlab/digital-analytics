@@ -72,7 +72,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         s.append(f"-H \"Content-Type: application/json\"")
         s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{json.dumps(data)}'")
         command = " ".join(s)
-        return {"logfile":logfile, "date":datetime.datetime.now().strftime("%Y/%m/%d"), "time":tsinteger, "data":data, "command":command}
+        return {"logfile":logfile, "date":datetime.datetime.now().strftime("%Y%m%d"), "time":tsinteger, "data":data, "command":command}
 
 def useFile(data):
     makeDirectory(dir_data)
