@@ -62,7 +62,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
             data["event"]["xdm"]["timestamp"] = tsformat 
         logfile = f"{dir_log}/{tsinteger}.json"
         #d = json.dumps(data).replace('"', '\\"')
-        d = json.dumps(data).replace('"', '""') if re.search("^Windows", myplatform) else json.dumps(data)
+        d = json.dumps(data).replace('"', '\\"') if re.search("^Windows", myplatform) else json.dumps(data)
         s = []
         s.append(f"curl.exe") if re.search("^Windows", myplatform) else s.append("curl")
         s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
@@ -70,8 +70,8 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
         s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
         s.append(f"-H \"Content-Type: application/json\"")
-        s.append(f"-d '{json.dumps(data)}'")
-        #s.append(f"-d \"{d}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{d}'")
+        #s.append(f"-d '{json.dumps(data)}'")
+        s.append(f"-d \"{d}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{d}'")
         command = " ".join(s)
         return {"logfile":logfile, "data":data, "command":command}
 
