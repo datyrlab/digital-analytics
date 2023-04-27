@@ -92,7 +92,7 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
             #print(run)
             try:
                 makeDirectory(dir_response)
-                response = json.loads(f"{{ {run} }}")
+                response = json.loads("{"+ run +"}")
                 print("response", response)
                 class_files.Files({}).writeFile({"file":f"{dir_response}/{response.get('requestId')}", "content":response})  
                 class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
