@@ -52,7 +52,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
     if re.search(".xml$", filepath):
         c = class_files.Files({}).readFile(filepath)
         data = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
-        return {"data":data, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
+        return {"data":data, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
@@ -86,7 +86,7 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
         if re.search("SUCCESS", run):
             directory_log = f"{dir_log}/{r.get('date')}"
             makeDirectory(directory_log)
-            class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('date')}.xml", "content":r.get('data')})  
+            class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}.xml", "content":r.get('data')})  
         elif re.search("^requestId", run):
             try:
                 directory_response = f"{dir_response}/{r.get('date')}"
@@ -95,7 +95,7 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
                 makeDirectory(directory_log)
                 response = json.loads("{\""+ run +"}")
                 class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{r.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)})  
-                class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('date')}.json", "content":json.dumps(r.get('data'), sort_keys=False, default=str)})  
+                class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}.json", "content":json.dumps(r.get('data'), sort_keys=False, default=str)})  
                 print("requestId:", response.get('requestId'))
             except Exception as e:
                 print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
