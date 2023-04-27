@@ -5,26 +5,26 @@
 ### Linux
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "eventlist":["myfolder/adobe-events/test.xml"]}'
+-re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "eventlist":["myfolder/adobe-events/test.xml"]}'
 ```
 
 ### Windows
 ```
 python digital-analytics/adobe_python/jobs/data_insertion.py `
---re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
+-re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
 ```
 
 ## Datastream
 ### Linux
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", eventlist":["adobe_python/json/test.xml"]}'
+-re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", eventlist":["adobe_python/json/test.xml"]}'
 ```
 
 ### Windows
 ```
 python digital-analytics/adobe_python/jobs/data_insertion.py `
---re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"streamid\":\"xxxxxx\", "eventlist\":[\"adobe_python/json/test.xml\"]}'
+-re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"streamid\":\"xxxxxx\", "eventlist\":[\"adobe_python/json/test.xml\"]}'
 ```
 
 ## Config.ini, JWT connection
