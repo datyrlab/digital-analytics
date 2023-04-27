@@ -89,9 +89,14 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
             makeDirectory(dir_log)
             class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
         elif re.search("^requestId", run):
-            print(type(run))
             print(run)
-
+            try:
+                makeDirectory(dir_response)
+                response = json.loads(f"{{ {run} }}")
+                class_files.Files({}).writeFile({"file":f"{dir_response}/response.get('requestId')", response})  
+                class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
+            except Exception as e:
+                print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
