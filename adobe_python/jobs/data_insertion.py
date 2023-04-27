@@ -43,7 +43,7 @@ def getTimestampFormat() -> int:
     s = datetime.datetime.utcnow().isoformat()
     return f"{s[:-3]}Z"
 
-def randomUniqueString():
+def randomUniqueString() -> str:
     import uuid
     return uuid.uuid4().hex[:25].upper()
 
@@ -72,7 +72,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         command = " ".join(s)
         return {"date":datetime.datetime.now().strftime("%Y%m%d"), "time":tsinteger, "data":data, "command":command}
 
-def useFile(data):
+def useFile(data:dict) -> str:
     makeDirectory(dir_tmp)
     filepath = f"{dir_tmp}/data.json"
     os.remove(filepath) if os.path.exists(filepath) else None
