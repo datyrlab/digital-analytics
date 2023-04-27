@@ -12,9 +12,9 @@ from adobe_python.jobs import ims_client
 
 myplatform = platform.platform()
 timestamp_numeric = int(time.time() * 1000.0)
-dir_tmp = f"{project_dir}/myfolder/tmp"
-dir_log = f"{project_dir}/myfolder/logs"
-dir_response = f"{project_dir}/myfolder/response"
+dir_tmp = f"{project_dir}/adobe-events-sent/myfolder/tmp"
+dir_log = f"{project_dir}/adobe-events-sent/myfolder/logs"
+dir_response = f"{project_dir}/adobe-events-sent/myfolder/response"
 
 def main():
     request = parseArgs(sys.argv)
