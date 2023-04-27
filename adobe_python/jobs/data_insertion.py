@@ -93,10 +93,9 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
                 directory = f"{dir_response}/{r.get('date')}"
                 makeDirectory(directory)
                 response = json.loads("{\""+ run +"}")
-                print(response)
-
                 class_files.Files({}).writeFile({"file":f"{directory}/{response.get('requestId')}_{r.get('time')}.json", "content":response})  
                 class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
+                print("requestId:", response.get('requestId'))
             except Exception as e:
                 print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 
@@ -107,7 +106,6 @@ def makeDirectory(directory:str) -> None:
 if __name__ == '__main__':
     time_start = time.time()
     main()
-    #stop timer
     if not re.search("^Windows", myplatform):
         time_finish = time.time()
         start_time = datetime.datetime.fromtimestamp(int(time_start)).strftime('%Y-%m-%d %H:%M:%S')
