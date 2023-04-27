@@ -62,7 +62,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
             data["event"]["xdm"]["timestamp"] = tsformat 
         logfile = f"{dir_log}/{tsinteger}.json"
         #d = json.dumps(data).replace('"', '\\"')
-        d = json.dumps(data).replace('"', '""') if re.search("^Windows", myplatform) else json.dumps(data)
+        d = json.dumps(data).replace('"', '\\"') if re.search("^Windows", myplatform) else json.dumps(data)
         s = []
         s.append(f"curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
         s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
