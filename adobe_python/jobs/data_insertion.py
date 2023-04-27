@@ -36,7 +36,7 @@ def parseRequest(r:dict) -> None:
 def getTimestamp() -> int:
     date_time = datetime.datetime.now()
     if re.search("^Windows", myplatform):
-        return date_time.timestamp()
+        return int(date_time.timestamp())
     return date_time.strftime('%s')
     
 def getTimestampFormat() -> int:
