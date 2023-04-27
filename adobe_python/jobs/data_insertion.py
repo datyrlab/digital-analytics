@@ -12,8 +12,8 @@ from adobe_python.jobs import ims_client
 
 myplatform = platform.platform()
 timestamp_numeric = int(time.time() * 1000.0)
-dir_log = f"{project_dir}/myfolder/logs"
 dir_data = f"{project_dir}/myfolder/data"
+dir_log = f"{project_dir}/myfolder/logs"
 
 def main():
     request = parseArgs(sys.argv)
@@ -62,18 +62,14 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat 
         logfile = f"{dir_log}/{tsinteger}.json"
-        #d = json.dumps(data).replace('"', '\\"')
-        d = json.dumps(data).replace('"', '^"') if re.search("^Windows", myplatform) else json.dumps(data)
         s = []
-        s.append(f"& curl.exe") if re.search("^Windows", myplatform) else s.append("curl")
+        s.append(f"curl.exe") if re.search("^Windows", myplatform) else s.append("curl")
         s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
         s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
         s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
         s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
         s.append(f"-H \"Content-Type: application/json\"")
-        #s.append(f"-d '{json.dumps(data)}'")
-        #s.append(f"-d \"{d}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{d}'")
-        s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{data}'")
+        s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{json.dumps(data)}'")
         command = " ".join(s)
         return {"logfile":logfile, "data":data, "command":command}
 
@@ -87,14 +83,10 @@ def useFile(data):
 def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request.get('url'), request.get('streamid'), filepath)
     if isinstance(r, dict):
-        #run = class_subprocess.Subprocess({}).run(r.get('command'))
-        
-        print(f"\n{r.get('command')}\n")
-        #print(f"\n{run}")
-
-        #if re.search("SUCCESS", run):
-        #    makeDirectory(dir_log)
-        #    class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})     
+        run = class_subprocess.Subprocess({}).run(r.get('command'))
+        if re.search("SUCCESS", run):
+            makeDirectory(dir_log)
+            class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})     
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
