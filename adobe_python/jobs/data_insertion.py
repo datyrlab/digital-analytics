@@ -64,7 +64,8 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         #d = json.dumps(data).replace('"', '\\"')
         d = json.dumps(data).replace('"', '\\"') if re.search("^Windows", myplatform) else json.dumps(data)
         s = []
-        s.append(f"curl -X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
+        s.append(f"curl.exe") if re.search("^Windows", myplatform) else s.append("curl")
+        s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
         s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
         s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
         s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
