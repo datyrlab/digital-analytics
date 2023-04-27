@@ -92,10 +92,11 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
             #print(run)
             try:
                 makeDirectory(dir_response)
-                response = json.loads("{"+ run +"}")
-                print("response", response)
-                class_files.Files({}).writeFile({"file":f"{dir_response}/{response.get('requestId')}", "content":response})  
-                class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
+                print("start...", run, "...end")
+                #response = json.loads("{"+ run +"}")
+                #print("response", response)
+                #class_files.Files({}).writeFile({"file":f"{dir_response}/{response.get('requestId')}", "content":response})  
+                #class_files.Files({}).writeFile({"file":r.get('logfile'), "content":r.get('data')})  
             except Exception as e:
                 print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 
