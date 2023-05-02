@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import argparse, datetime, json, os, platform, re, sys, time
+import argparse, datetime, hashlib, json, os, platform, re, sys, time
 from typing import Any, Callable, Dict, Optional, Union
 from pprint import pprint
 
@@ -56,7 +56,17 @@ def replaceString(s:str, tsinteger:str) -> str:
         sreplaced = re.sub(find, replace, s)
     return sreplaced
 
-def getCommand(url:str, streamid:str, filepath:str) -> dict:
+def getIdentityMap(r:dict) -> dict:
+    m = {}
+    if isinstance(r.get('email'), str):
+        m['Email_LC_SHA256'] = [{"id": hashlib.sha256(fb"{r.get('email'})").hexdigest(),"primary": True}]
+    return m
+
+def getCommand(r:dict, filepath:str) -> dict:
+    url = r.get('url')
+    streamid = r.get('streamid')
+    email = r.get('email')
+    
     tsinteger = getTimestamp()
     c = class_files.Files({}).readFile(filepath)
     cstr = replaceString("".join(c), str(tsinteger)) if isinstance(c, list) and len(c) > 0 else None
@@ -71,7 +81,8 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         data = json.loads(cstr) if isinstance(cstr, str) else None
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             data["event"]["xdm"]["_id"] = randomUniqueString()
-            data["event"]["xdm"]["timestamp"] = tsformat 
+            data["event"]["xdm"]["timestamp"] = tsformat
+            print("m ====", getIdentityMap(r))
         s = []
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
         s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
@@ -91,7 +102,7 @@ def useFile(data:dict) -> str:
     return filepath
 
 def sendCommand(index:int, request:dict, filepath:str) -> None:
-    r = getCommand(request.get('url'), request.get('streamid'), filepath)
+    r = getCommand(request, filepath)
     if isinstance(r, dict):
         run = class_subprocess.Subprocess({}).run(r.get('command'))
         if re.search("SUCCESS", run):
