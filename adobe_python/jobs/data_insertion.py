@@ -54,7 +54,7 @@ def replaceString(s:str, tsinteger:int) -> str:
         ('REPLACEORDERNUMBER', tsinteger)
     ]
     for find, replace in replacelist:
-        sreplaced = re.sub(find, new, s)
+        sreplaced = re.sub(find, replace, s)
     return sreplaced
 
 def getCommand(url:str, streamid:str, filepath:str) -> dict:
