@@ -25,7 +25,7 @@ python3 digital-analytics/adobe_python/jobs/data_insertion.py \
 specify an identityMap
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", "identityMap":{"Email_LC_SHA256": [{"id":"4ffccd7323a0085c7785c81c668f6f3507c21d999255e454d7f9bc68c1f82ac8", "primary": true}]}, "eventlist":["adobe_python/json/test.json"]}'
+--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", "identityMap":{"Email_LC_SHA256": [{"id":"4ffccd7323a0085c7785c81c668f6f3507c21d999255e454d7f9bc68c1f82ac8", "primary": true}]}, "eventlist":["adobe_python/json/test-noidentitymap.json"]}'
 ```
 
 get a random identityMap from specific/default file
