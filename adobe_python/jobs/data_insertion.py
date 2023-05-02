@@ -105,8 +105,6 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
     if isinstance(r, dict):
         run = class_subprocess.Subprocess({}).run(r.get('command'))
-        print(run)
-        #print(json.dumps(r.get('data')))
         if re.search("SUCCESS", run):
             directory_log = f"{dir_log}/{r.get('date')}"
             makeDirectory(directory_log)
