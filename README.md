@@ -3,24 +3,10 @@
 ## Data Insertion
 
 ### Linux
-random profile from default list
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
 -re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "eventlist":["myfolder/adobe-events/test.xml"]}'
 ```
-
-random profile from specific list
-```
-python3 digital-analytics/adobe_python/jobs/data_insertion.py \
--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "profile":"adobe_python/json/profilelist.json", "eventlist":["myfolder/adobe-events/test.xml"]}'
-```
-
-specify email as profile
-```
-python3 digital-analytics/adobe_python/jobs/data_insertion.py \
--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "profile":[{"email":"richie.cunningham@acme.com"}], "eventlist":["myfolder/adobe-events/test.xml"]}'
-```
-
 
 ### Windows
 ```
@@ -30,9 +16,22 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 
 ## Datastream
 ### Linux
+already includes identityMap key
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", eventlist":["adobe_python/json/test.xml"]}'
+--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", "eventlist":["adobe_python/json/test.json"]}'
+```
+
+specify an identityMap
+```
+python3 digital-analytics/adobe_python/jobs/data_insertion.py \
+--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", "profile":[{"Email_LC_SHA256": [{"id":"4ffccd7323a0085c7785c81c668f6f3507c21d999255e454d7f9bc68c1f82ac8", "primary": true}]}], "eventlist":["adobe_python/json/test.json"]}'
+```
+
+get a random identityMap from specific/default file
+```
+python3 digital-analytics/adobe_python/jobs/data_insertion.py \
+--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", "profile":"adobe_python/json/profilelist.json"", "eventlist":["adobe_python/json/test-noidentitymap.json"]}'
 ```
 
 ### Windows
