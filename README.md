@@ -31,7 +31,7 @@ python3 digital-analytics/adobe_python/jobs/data_insertion.py \
 get a random identityMap from specific/default file
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", "identityMap":"adobe_python/json/profilelist.json"", "eventlist":["adobe_python/json/test-noidentitymap.json"]}'
+--re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", "identityMap":"adobe_python/json/profilelist.json", "eventlist":["adobe_python/json/test-noidentitymap.json"]}'
 ```
 
 ### Windows
