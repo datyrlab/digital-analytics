@@ -59,10 +59,11 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         tsformat = getTimestampFormat()
         t = ims_client.getAccessToken()
         a = class_files.Files({}).readJson(filepath)
-        b = re.sub(r'REPLACEORDERNUMBER', tsinteger, json.dumps(a)) if isinstance(a, dict) else None
-        print("b type ===>", type(b))
-        print("b", b)
-        data = json.loads(b)
+        b = json.dumps(a) 
+        c = re.sub(r'REPLACEORDERNUMBER', tsinteger, b) if isinstance(a, dict) else None
+        print("c type ===>", type(c))
+        print("c", c)
+        data = json.loads(c)
 
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             data["event"]["xdm"]["_id"] = randomUniqueString()
