@@ -1,5 +1,4 @@
 [
-	{"identityMap":{"ECID": [{"id":"95674397858746354768937501728356821096", "primary":true}], "ProfileID": [{"id":"LDHn1wtCMxXPCz9WkV1ut37QCjk5eEGvcPSs4qu8sPpH8AfDedSXEh2YyxmkCErLSmytesting==", "primary":true}]}},
-	{"identityMap":{"ECID": [{"id":"96847394056827365064060722494305488294", "primary":true}], "ProfileID": [{"id":"LDHn1wtCMxXPCz9WkV1ut37QCjk5eEGvcPSs4qu8sPpH8AfDedSXEh2YyxmkCErLSmytesting==", "primary":true}]}}
+	{"identityMap":{"Email_LC_SHA256": [{"id":"10abbe834ad3d483d5b661b3c9ade14f21f4142e7aefa44d2b52c5fa9b2338fc", "primary": true}]}}
 ]
 
