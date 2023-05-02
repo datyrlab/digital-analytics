@@ -97,8 +97,8 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
                 makeDirectory(directory_log)
                 response = json.loads("{\""+ run +"}")
                 class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{r.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)})  
-                class_files.Files({}).writeFile({"file":f"{directory_log}/log-{r.get('time')}.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, default=str)})  
-                class_files.Files({}).writeFile({"file":f"{directory_log}/format-{r.get('time')}.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
+                class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-log.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, default=str)})  
+                class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-fomrat.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
                 print("requestId:", response.get('requestId'))
             except Exception as e:
                 print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
