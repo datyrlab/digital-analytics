@@ -59,9 +59,9 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
         tsformat = getTimestampFormat()
         t = ims_client.getAccessToken()
         a = class_files.Files({}).readJson(filepath)
-        print("a type ===>", type(a))
-        print("a", a)
         b = re.sub(r'REPLACEORDERNUMBER', tsinteger, json.dumps(a)) if isinstance(a, dict) else None
+        print("b type ===>", type(b))
+        print("b", b)
         data = json.loads(b)
 
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
