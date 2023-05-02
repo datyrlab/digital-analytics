@@ -62,7 +62,7 @@ def getIdentityMap(r:dict) -> dict:
     filepath = f"{package_dir}/{r.get('profile')}" if isinstance(r.get('profile'), str) and os.path.exists(f"{package_dir}/{r.get('profile')}") else f"{project_dir}/adobe_python/json/profilelist.json"
     r = class_files.Files({}).readJson(filepath) if os.path.exists(filepath) else None
     result = random.choice(r) if isinstance(r, list) and len(r) > 0 else {"identityMap":[{"Email_LC_SHA256": [{"id":"bfdb4e7af1447741addddba0f7c8ff34114be39926cb1e7e71b69b3b9c49821b", "primary": True}]}]}
-    return result.get('identityMap')
+    return {result.get('identityMap')}
 
 def getCommand(r:dict, filepath:str) -> dict:
     url = r.get('url')
@@ -76,12 +76,13 @@ def getCommand(r:dict, filepath:str) -> dict:
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
-        t = ims_client.getAccessToken()
+        t={} #t = ims_client.getAccessToken()
         data = json.loads(cstr) if isinstance(cstr, str) else None
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat
             if not isinstance(data.get('event',{}).get('xdm',{}).get('identityMap'), dict):
+                print(getIdentityMap(r))
                 data["event"]["xdm"]["identityMap"] = getIdentityMap(r)
         s = []
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
