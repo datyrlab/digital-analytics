@@ -3,10 +3,24 @@
 ## Data Insertion
 
 ### Linux
+random profile from default list
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
 -re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "eventlist":["myfolder/adobe-events/test.xml"]}'
 ```
+
+random profile from specific list
+```
+python3 digital-analytics/adobe_python/jobs/data_insertion.py \
+-re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "profile":"adobe_python/json/profilelist.json", "eventlist":["myfolder/adobe-events/test.xml"]}'
+```
+
+specify email as profile
+```
+python3 digital-analytics/adobe_python/jobs/data_insertion.py \
+-re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "profile":[{"email":"richie.cunningham@acme.com"}], "eventlist":["myfolder/adobe-events/test.xml"]}'
+```
+
 
 ### Windows
 ```

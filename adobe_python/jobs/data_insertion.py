@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import argparse, datetime, hashlib, json, os, platform, re, sys, time
+import argparse, datetime, hashlib, json, os, platform, random, re, sys, time
 from typing import Any, Callable, Dict, Optional, Union
 from pprint import pprint
 
@@ -57,16 +57,16 @@ def replaceString(s:str, tsinteger:str) -> str:
     return sreplaced
 
 def getIdentityMap(r:dict) -> dict:
-    m = {}
-    if isinstance(r.get('email'), str):
-        m['Email_LC_SHA256'] = [{"id": hashlib.sha256(fb"{r.get('email'})").hexdigest(),"primary": True}]
-    return m
+    if isinstance(r.get('profile'), list):
+        return {"identityMap":r.get('profile')}
+    filepath = f"{package_dir}/{r.get('profile')}" if isinstance(r.get('profile'), str) and os.path.exists(f"{package_dir}/{r.get('profile')}") else f"{project_dir}/adobe_python/json/profilelist.json"
+    r = class_files.Files({}).readJson(filepath) if os.path.exists(filepath) else None
+    result = random.choice(r) if isinstance(r, list) and len(r) > 0 else {"identityMap":[{"Email_LC_SHA256": [{"id":"bfdb4e7af1447741addddba0f7c8ff34114be39926cb1e7e71b69b3b9c49821b", "primary": True}]}]}
+    return result.get('identityMap')
 
 def getCommand(r:dict, filepath:str) -> dict:
     url = r.get('url')
     streamid = r.get('streamid')
-    email = r.get('email')
-    
     tsinteger = getTimestamp()
     c = class_files.Files({}).readFile(filepath)
     cstr = replaceString("".join(c), str(tsinteger)) if isinstance(c, list) and len(c) > 0 else None
@@ -77,11 +77,12 @@ def getCommand(r:dict, filepath:str) -> dict:
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
         t = ims_client.getAccessToken()
-        
         data = json.loads(cstr) if isinstance(cstr, str) else None
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat
+            if not isinstance(data.get('event',{}).get('xdm',{}).get('identityMap'), dict):
+                data["event"]["xdm"]["identityMap"] = getIdentityMap(r)
             print("m ====", getIdentityMap(r))
         s = []
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")

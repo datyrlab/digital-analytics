@@ -1,0 +1,16 @@
+{
+   "event": {
+      "xdm": {
+         "eventType": "web.webpagedetails.pageViews",
+         "web": {
+            "webPageDetails": {
+               "URL": "https://alloystore.dev/",
+               "name": "home-demo-Home Page"
+            }
+         }
+      },
+      "data": {
+         "prop1": "custom value"
+      }
+   }
+}
