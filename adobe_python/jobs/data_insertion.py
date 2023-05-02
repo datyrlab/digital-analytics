@@ -48,23 +48,28 @@ def randomUniqueString() -> str:
     import uuid
     return uuid.uuid4().hex[:25].upper()
 
+def replaceString(s:str, tsinteger:int) -> str:
+    replacelist = [
+        ('timestamp><', f"timestamp>{tsinteger}<"),
+        ('REPLACEORDERNUMBER', tsinteger)
+    ]
+    for find, replace in replacelist:
+        sreplaced = re.sub(find, new, s)
+    return sreplaced
+
 def getCommand(url:str, streamid:str, filepath:str) -> dict:
     tsinteger = getTimestamp()
+    c = class_files.Files({}).readFile(filepath)
+    cstr = replaceString("".join(c), tsinteger) if isinstance(c, list) and len(c) > 0 else None
+
     if re.search(".xml$", filepath):
-        c = class_files.Files({}).readFile(filepath)
-        data = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
         return {"data":data, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
         t = ims_client.getAccessToken()
-        a = class_files.Files({}).readJson(filepath)
-        b = json.dumps(a) 
-        print("b type ===>", type(b))
-        print("b", b)
-        c = re.sub(r'REPLACEORDERNUMBER', tsinteger, b) if isinstance(b, str) else None
-        data = json.loads(c)
-
+        
+        data = json.loads(cstr) if isinstance(cstr, str) else None
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat 
