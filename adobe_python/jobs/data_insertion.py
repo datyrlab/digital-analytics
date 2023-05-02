@@ -10,7 +10,6 @@ sys.path.insert(0, project_dir)
 from adobe_python.classes import class_converttime, class_files, class_subprocess
 from adobe_python.jobs import ims_client
 
-myplatform = platform.platform()
 timestamp_numeric = int(time.time() * 1000.0)
 dir_tmp = f"{project_dir}/myfolder/adobe-events-sent/tmp"
 dir_log = f"{project_dir}/myfolder/adobe-events-sent/logs"
@@ -35,7 +34,7 @@ def parseRequest(r:dict) -> None:
         
 def getTimestamp() -> int:
     date_time = datetime.datetime.now()
-    if re.search("^Windows", myplatform):
+    if re.search("^Windows", platform.platform()):
         return int(date_time.timestamp())
     return date_time.strftime('%s')
     
@@ -74,13 +73,13 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat 
         s = []
-        s.append(f"curl.exe") if re.search("^Windows", myplatform) else s.append("curl")
+        s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
         s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
         s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
         s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
         s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
         s.append(f"-H \"Content-Type: application/json\"")
-        s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", myplatform) else s.append(f"-d '{json.dumps(data)}'")
+        s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", platform.platform()) else s.append(f"-d '{json.dumps(data)}'")
         command = " ".join(s)
         return {"date":datetime.datetime.now().strftime("%Y%m%d"), "time":tsinteger, "data":data, "command":command}
 
@@ -120,7 +119,7 @@ def makeDirectory(directory:str) -> None:
 if __name__ == '__main__':
     time_start = time.time()
     main()
-    if not re.search("^Windows", myplatform):
+    if not re.search("^Windows", platform.platform()):
         time_finish = time.time()
         start_time = datetime.datetime.fromtimestamp(int(time_start)).strftime('%Y-%m-%d %H:%M:%S')
         finish_time = datetime.datetime.fromtimestamp(int(time_finish)).strftime('%Y-%m-%d %H:%M:%S')
