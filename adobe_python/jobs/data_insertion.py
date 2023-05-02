@@ -52,14 +52,15 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
     tsinteger = getTimestamp()
     if re.search(".xml$", filepath):
         c = class_files.Files({}).readFile(filepath)
-        a = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
-        data = re.sub(r'REPLACEORDERNUMBER', tsinteger, a) if isinstance(a, str) else None
+        data = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
         return {"data":data, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
         t = ims_client.getAccessToken()
-        data = class_files.Files({}).readJson(filepath)
+        a = class_files.Files({}).readJson(filepath)
+        data = json.loads(re.sub(r'REPLACEORDERNUMBER', tsinteger, json.dumps(a))) if isinstance(a, dict) else None
+        
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat 
