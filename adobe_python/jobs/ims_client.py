@@ -27,7 +27,7 @@ def get_access_token(config, jwt_token):
     }
 
     response = requests.post(config["imsexchange"], data=post_body)
-    return response.json()["access_token"]
+    return response.json()["access_token"] if isinstance(response.json().get('access_token'), str) else None
 
 
 def get_first_global_company_id(config, access_token):
