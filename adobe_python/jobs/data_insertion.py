@@ -53,7 +53,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
     if re.search(".xml$", filepath):
         c = class_files.Files({}).readFile(filepath)
         a = re.sub(r'timestamp><', f"timestamp>{tsinteger}<", "".join(c)) if isinstance(c, list) and len(c) > 0 else None
-        data = re.sub(r'ORDERNUMBER', tsinteger, b) if isinstance(b, str) else None
+        data = re.sub(r'REPLACEORDERNUMBER', tsinteger, a) if isinstance(a, str) else None
         return {"data":data, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
     
     elif re.search(".json$", filepath):
