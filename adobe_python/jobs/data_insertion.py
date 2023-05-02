@@ -92,7 +92,6 @@ def getCommand(r:dict, filepath:str) -> dict:
         s.append(f"-H \"Content-Type: application/json\"")
         s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", platform.platform()) else s.append(f"-d '{json.dumps(data)}'")
         command = " ".join(s)
-        print(command)
         return {"date":datetime.datetime.now().strftime("%Y%m%d"), "time":tsinteger, "data":data, "command":command}
 
 def useFile(data:dict) -> str:
@@ -106,6 +105,7 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
     if isinstance(r, dict):
         run = class_subprocess.Subprocess({}).run(r.get('command'))
+        print(run)
         if re.search("SUCCESS", run):
             directory_log = f"{dir_log}/{r.get('date')}"
             makeDirectory(directory_log)
