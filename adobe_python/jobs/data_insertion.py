@@ -48,7 +48,7 @@ def randomUniqueString() -> str:
     import uuid
     return uuid.uuid4().hex[:25].upper()
 
-def replaceString(s:str, tsinteger:int) -> str:
+def replaceString(s:str, tsinteger:str) -> str:
     replacelist = [
         ('timestamp><', f"timestamp>{tsinteger}<"),
         ('REPLACEORDERNUMBER', tsinteger)
@@ -60,7 +60,7 @@ def replaceString(s:str, tsinteger:int) -> str:
 def getCommand(url:str, streamid:str, filepath:str) -> dict:
     tsinteger = getTimestamp()
     c = class_files.Files({}).readFile(filepath)
-    cstr = replaceString("".join(c), tsinteger) if isinstance(c, list) and len(c) > 0 else None
+    cstr = replaceString("".join(c), str(tsinteger)) if isinstance(c, list) and len(c) > 0 else None
 
     if re.search(".xml$", filepath):
         return {"data":data, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
