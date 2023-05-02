@@ -63,7 +63,7 @@ def getCommand(url:str, streamid:str, filepath:str) -> dict:
     cstr = replaceString("".join(c), str(tsinteger)) if isinstance(c, list) and len(c) > 0 else None
 
     if re.search(".xml$", filepath):
-        return {"data":data, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{data}\""}
+        return {"data":cstr, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{cstr}\""}
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
