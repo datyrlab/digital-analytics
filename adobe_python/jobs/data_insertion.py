@@ -83,7 +83,6 @@ def getCommand(r:dict, filepath:str) -> dict:
             data["event"]["xdm"]["timestamp"] = tsformat
             if not isinstance(data.get('event',{}).get('xdm',{}).get('identityMap'), dict):
                 data["event"]["xdm"]["identityMap"] = getIdentityMap(r)
-            print("m ====", getIdentityMap(r))
         s = []
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
         s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
@@ -93,6 +92,7 @@ def getCommand(r:dict, filepath:str) -> dict:
         s.append(f"-H \"Content-Type: application/json\"")
         s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", platform.platform()) else s.append(f"-d '{json.dumps(data)}'")
         command = " ".join(s)
+        print(command)
         return {"date":datetime.datetime.now().strftime("%Y%m%d"), "time":tsinteger, "data":data, "command":command}
 
 def useFile(data:dict) -> str:
