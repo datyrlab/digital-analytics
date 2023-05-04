@@ -59,7 +59,7 @@ def replaceString(s:str, tsinteger:str) -> str:
 def getIdentityMap(r:dict) -> dict:
     if isinstance(r.get('identityMap'), list):
         return r.get('identityMap')
-    filepath = f"{package_dir}/{r.get('identityMap')}" if isinstance(r.get('identityMap'), str) and os.path.exists(f"{package_dir}/{r.get('identityMap')}") else f"{project_dir}/adobe_python/json/profilelist.json"
+    filepath = f"{project_dir}/{r.get('identityMap')}" if isinstance(r.get('identityMap'), str) and os.path.exists(f"{project_dir}/{r.get('identityMap')}") else f"{project_dir}/adobe_python/json/profilelist.json"
     r = class_files.Files({}).readJson(filepath) if os.path.exists(filepath) else None
     result = random.choice(r) if isinstance(r, list) and len(r) > 0 else {"identityMap":[{"Email_LC_SHA256": [{"id":"bfdb4e7af1447741addddba0f7c8ff34114be39926cb1e7e71b69b3b9c49821b", "primary": True}]}]}
     return result.get('identityMap')
@@ -104,7 +104,7 @@ def useFile(data:dict) -> str:
 def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
     if isinstance(r, dict):
-        print("=====>", r.get('data'), "\n")
+        print("data =====>", json.dumps(r.get('data')), "\n")
         run = class_subprocess.Subprocess({}).run(r.get('command'))
         if re.search("SUCCESS", run):
             directory_log = f"{dir_log}/{r.get('date')}"
