@@ -110,14 +110,14 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
             directory_log = f"{dir_log}/{r.get('date')}"
             makeDirectory(directory_log)
             class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}.xml", "content":r.get('data')})  
-        elif re.search("^requestId", run):
+        else:
             try:
                 directory_response = f"{dir_response}/{r.get('date')}"
                 directory_log = f"{dir_log}/{r.get('date')}"
                 makeDirectory(directory_response)
                 makeDirectory(directory_log)
-                response = json.loads("{\""+ run +"}")
-                class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{r.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)})  
+                response = json.loads("{\""+ run +"}") if re.search("^requestId", run) else run
+                class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{r.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)}) if re.search("^requestId", run) else None 
                 class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-log.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, default=str)})  
                 class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-format.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
                 print("requestId:", response.get('requestId'))
