@@ -110,7 +110,7 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
             directory_log = f"{dir_log}/{r.get('date')}"
             makeDirectory(directory_log)
             class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}.xml", "content":r.get('data')})  
-        else:
+        elif re.search(".json$", filepath) :
             try:
                 directory_response = f"{dir_response}/{r.get('date')}"
                 directory_log = f"{dir_log}/{r.get('date')}"
