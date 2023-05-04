@@ -121,7 +121,7 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
                 class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-log.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, default=str)})  
                 class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-format.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
                 print("requestId:", response.get('requestId')) if isinstance(response, dict) else print("error:", run)
-                time.sleep(random.randint(1, 6)) if len(request.get('eventlist')) > 1 and request.get('delay') else None
+                time.sleep(random.randint(2, 8)) if len(request.get('eventlist')) > 1 and request.get('delay') else None
             except Exception as e:
                 print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 
