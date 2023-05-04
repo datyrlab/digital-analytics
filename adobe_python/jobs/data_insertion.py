@@ -104,6 +104,7 @@ def useFile(data:dict) -> str:
 def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
     if isinstance(r, dict):
+        print("=====>", r.get('data'))
         run = class_subprocess.Subprocess({}).run(r.get('command'))
         if re.search("SUCCESS", run):
             directory_log = f"{dir_log}/{r.get('date')}"
