@@ -79,10 +79,17 @@ def getCommand(r:dict, filepath:str) -> dict:
         t = ims_client.getAccessToken()
         data = json.loads(cstr) if isinstance(cstr, str) else None
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
+            identitymap = getIdentityMap(r)
+            profileid = [(lambda x: x)(x) for x in identitymap.get('ProfileID') if x.get('id')][0].get('id') if isinstance(identitymap.get('ProfileID'), list) else None
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat
             if not isinstance(data.get('event',{}).get('xdm',{}).get('identityMap'), dict):
-                data["event"]["xdm"]["identityMap"] = getIdentityMap(r)
+                data["event"]["xdm"]["identityMap"] = identitymap
+            if not isinstance(data.get('event',{}).get('xdm',{}).get('cea'), dict):
+                data["event"]["xdm"]["cea"] = {"profileid":profileid}
+            else: 
+                data["event"]["xdm"]["cea"]["profileid"] = profileid
+                
         s = []
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
         s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")

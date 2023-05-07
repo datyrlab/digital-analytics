@@ -16,28 +16,28 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 
 ## Datastream
 ### Linux
-already includes identityMap key
+json has identityMap
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", "eventlist":["adobe_python/json/test.json"]}'
+--re '{"streamid":"xxxxxx", "eventlist":["adobe_python/json/test-identitymap.json"]}'
 ```
 
-specify an identityMap
+command has identityMap
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", "identityMap":{"Email_LC_SHA256": [{"id":"4ffccd7323a0085c7785c81c668f6f3507c21d999255e454d7f9bc68c1f82ac8", "primary": true}]}, "eventlist":["adobe_python/json/test-noidentitymap.json"]}'
+--re '{"streamid":"xxxxxx", "identityMap":{"Email_LC_SHA256": [{"id":"4ffccd7323a0085c7785c81c668f6f3507c21d999255e454d7f9bc68c1f82ac8", "primary": true}]}, "eventlist":["adobe_python/json/test.json"]}'
 ```
 
 get a random identityMap from specific/default file
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "streamid":"xxxxxx", "identityMap":"adobe_python/json/profilelist.json", "eventlist":["adobe_python/json/test-noidentitymap.json"]}'
+--re '{"streamid":"xxxxxx", "identityMap":"adobe_python/json/profilelist.json", "delay":true, "eventlist":["adobe_python/json/test-identitymap.json", "adobe_python/json/test.json"]}'
 ```
 
 ### Windows
 ```
 python digital-analytics/adobe_python/jobs/data_insertion.py `
--re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"streamid\":\"xxxxxx\", "eventlist\":[\"adobe_python/json/test.xml\"]}'
+-re '{\"streamid\":\"xxxxxx\", "eventlist\":[\"adobe_python/json/test.json\"]}'
 ```
 
 ## Config.ini, JWT connection
