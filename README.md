@@ -16,19 +16,19 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 
 ## Datastream
 ### Linux
-json has identityMap
+json file includes identityMap
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
 --re '{"streamid":"xxxxxx", "eventlist":["adobe_python/json/test-identitymap.json"]}'
 ```
 
-command has identityMap
+command includes identityMap
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
 --re '{"streamid":"xxxxxx", "identityMap":{"Email_LC_SHA256": [{"id":"4ffccd7323a0085c7785c81c668f6f3507c21d999255e454d7f9bc68c1f82ac8", "primary": true}]}, "eventlist":["adobe_python/json/test.json"]}'
 ```
 
-random identityMap from file
+get a random identityMap from file
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
 --re '{"streamid":"xxxxxx", "identityMap":"adobe_python/json/profilelist.json", "delay":true, "eventlist":["adobe_python/json/test-identitymap.json", "adobe_python/json/test.json"]}'
