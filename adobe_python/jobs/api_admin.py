@@ -16,7 +16,7 @@ dir_admin = f"{project_dir}/myfolder/adobe-admin"
 
 def main():
     request = parseArgs(sys.argv)
-    parseRequest(request)
+    sendCommand(request)
 
 def parseArgs(argv) -> tuple:
     parser = argparse.ArgumentParser()
@@ -27,13 +27,8 @@ def parseArgs(argv) -> tuple:
     request = json.loads(args.get('request')) if isinstance(args.get('request'), str) else None
     return request
 
-def parseRequest(r:dict) -> None:
-    if isinstance(r, dict) and isinstance(r.get('eventlist'), list) and len(r.get('eventlist')) > 0:
-        [(lambda x: sendCommand(i, r.get('url'), f"{project_dir}/{x}"))(x) for i, x in enumerate(r.get('eventlist'))]
-        
-def getCommand(url:str) -> tuple:
+def getCommand() -> tuple:
     t = ims_client.getAccessToken()
-    logfile = f"{dir_admin}/{tsinteger}.json"
     s = []
     s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
     s.append("-X GET https://platform.adobe.io/data/foundation/schemaregistry/stats")
@@ -44,8 +39,8 @@ def getCommand(url:str) -> tuple:
     command = " ".join(s)
     return command
 
-def sendCommand(index:int, url:str) -> None:
-    command = getCommand(url, filepath)
+def sendCommand(request:dict) -> None:
+    command = getCommand()
     run = class_subprocess.Subprocess({}).run(command)
     print(run)
 
