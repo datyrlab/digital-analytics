@@ -84,7 +84,7 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 ### Windows
 ```
 python digital-analytics/adobe_python/jobs/api_admin.py `
--re '{\"get\":\"https://platform.adobe.io/data/foundation/schemaregistry/stats\", \"sandbox\":\"prod\"}'
+-re '{\"get\":\"https://platform.adobe.io/data/foundation/schemaregistry/stats\", \"sandbox\":\"prod\", \"save\":\"admin\"}'
 ```
 
 

@@ -52,11 +52,11 @@ def sendCommand(request:dict) -> None:
 
     try:
         tsinteger = getTimestamp()
-        directory = f"{dir_admin}/{r.get('save_dir')}" if r.get('save_dir') else f"{dir_admin}/none"
-        makeDirectory(directory)
+        path = f"{proejct_dir}/{r.get('save')}" if r.get('save') else f"{project_dir}/myfolder/adobe-admin/{tsinteger}"
+        makeDirectory(os.path.dirname(path))
         response = json.loads("{\""+ run +"}")
-        class_files.Files({}).writeFile({"file":f"{directory}/{tsinteger}-log.json", "content":json.dumps(response, sort_keys=False, default=str)})  
-        class_files.Files({}).writeFile({"file":f"{directory}/{tsinteger}-format.json", "content":json.dumps(response, sort_keys=False, indent=4, default=str)})  
+        class_files.Files({}).writeFile({"file":f"{path}-log.json", "content":json.dumps(response, sort_keys=False, default=str)})  
+        class_files.Files({}).writeFile({"file":f"{path}-format.json", "content":json.dumps(response, sort_keys=False, indent=4, default=str)})  
     except Exception as e:
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 
