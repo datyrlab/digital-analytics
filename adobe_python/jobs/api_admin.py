@@ -52,7 +52,7 @@ def sendCommand(request:dict) -> None:
 
     try:
         tsinteger = getTimestamp()
-        path = f"{proejct_dir}/{r.get('save')}" if r.get('save') else f"{project_dir}/myfolder/adobe-admin/{tsinteger}"
+        path = f"{project_dir}/{request.get('save')}" if request.get('save') else f"{project_dir}/myfolder/adobe-admin/{tsinteger}"
         makeDirectory(os.path.dirname(path))
         response = json.loads("{\""+ run +"}")
         class_files.Files({}).writeFile({"file":f"{path}-log.json", "content":json.dumps(response, sort_keys=False, default=str)})  
