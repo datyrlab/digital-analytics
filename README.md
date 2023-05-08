@@ -15,30 +15,6 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 ```
 
 ## Datastream
-### Linux
-json file includes identityMap
-```
-python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"streamid":"xxxxxx", "eventlist":["adobe_python/json/test-identitymap.json"]}'
-```
-
-command includes identityMap
-```
-python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"streamid":"xxxxxx", "identityMap":{"Email_LC_SHA256": [{"id":"4ffccd7323a0085c7785c81c668f6f3507c21d999255e454d7f9bc68c1f82ac8", "primary": true}]}, "eventlist":["adobe_python/json/test.json"]}'
-```
-
-get a random identityMap from file
-```
-python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"streamid":"xxxxxx", "identityMap":"adobe_python/json/profilelist.json", "delay":true, "eventlist":["adobe_python/json/test-identitymap.json", "adobe_python/json/test.json"]}'
-```
-
-### Windows
-```
-python digital-analytics/adobe_python/jobs/data_insertion.py `
--re '{\"streamid\":\"xxxxxx\", "eventlist\":[\"adobe_python/json/test.json\"]}'
-```
 
 ## Config.ini, JWT connection
 ```
@@ -77,6 +53,42 @@ analyticsApiUrl=https://analytics.adobe.io/api
 # returns an access token
 python3 digital-analytics/adobe_python/tests/test_JWTaccesstoken.py
 ```
+
+### Linux
+json file includes identityMap
+```
+python3 digital-analytics/adobe_python/jobs/data_insertion.py \
+--re '{"streamid":"xxxxxx", "eventlist":["adobe_python/json/test-identitymap.json"]}'
+```
+
+command includes identityMap
+```
+python3 digital-analytics/adobe_python/jobs/data_insertion.py \
+--re '{"streamid":"xxxxxx", "identityMap":{"Email_LC_SHA256": [{"id":"4ffccd7323a0085c7785c81c668f6f3507c21d999255e454d7f9bc68c1f82ac8", "primary": true}]}, "eventlist":["adobe_python/json/test.json"]}'
+```
+
+get a random identityMap from file
+```
+python3 digital-analytics/adobe_python/jobs/data_insertion.py \
+--re '{"streamid":"xxxxxx", "identityMap":"adobe_python/json/profilelist.json", "delay":true, "eventlist":["adobe_python/json/test-identitymap.json", "adobe_python/json/test.json"]}'
+```
+
+### Windows
+```
+python digital-analytics/adobe_python/jobs/data_insertion.py `
+-re '{\"streamid\":\"xxxxxx\", "eventlist\":[\"adobe_python/json/test.json\"]}'
+```
+
+## api
+
+### Windows
+```
+python digital-analytics/adobe_python/jobs/api_admin.py `
+-re '{}'
+```
+
+
+
 
 
 
