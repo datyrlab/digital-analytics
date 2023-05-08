@@ -55,11 +55,11 @@ def replaceString(s:str, tsinteger:str) -> str:
         ('REPLACEORDERNUMBER', tsinteger)
     ]
     for find, replace in replacelist:
-        sreplaced = re.sub(find, replace, s)
-    return sreplaced
+        s = re.sub(find, replace, s)
+    return s
 
 def getIdentityMap(r:dict) -> dict:
-    if isinstance(r.get('identityMap'), list):
+    if isinstance(r.get('identityMap'), dict):
         return r.get('identityMap')
     filepath = f"{project_dir}/{r.get('identityMap')}" if isinstance(r.get('identityMap'), str) and os.path.exists(f"{project_dir}/{r.get('identityMap')}") else f"{project_dir}/adobe_python/json/profilelist.json"
     r = class_files.Files({}).readJson(filepath) if os.path.exists(filepath) else None
