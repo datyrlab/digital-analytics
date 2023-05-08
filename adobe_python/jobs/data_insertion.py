@@ -14,6 +14,7 @@ timestamp_numeric = int(time.time() * 1000.0)
 dir_tmp = f"{project_dir}/myfolder/adobe-events-sent/tmp"
 dir_log = f"{project_dir}/myfolder/adobe-events-sent/logs"
 dir_response = f"{project_dir}/myfolder/adobe-events-sent/response"
+testcode = "alpha"
 
 def main():
     request = parseArgs(sys.argv)
@@ -50,6 +51,7 @@ def randomUniqueString() -> str:
 def replaceString(s:str, tsinteger:str) -> str:
     replacelist = [
         ('timestamp><', f"timestamp>{tsinteger}<"),
+        ('REPLACETESTCODE', testcode),
         ('REPLACEORDERNUMBER', tsinteger)
     ]
     for find, replace in replacelist:
