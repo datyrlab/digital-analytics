@@ -31,11 +31,11 @@ def getCommand(r:dict) -> str:
     t = ims_client.getAccessToken()
     s = []
     s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
-    s.append("-X GET r.get('get')") if r.get('get') else s.append("-X POST r.get('post')") 
+    s.append(f"-X GET {r.get('get')}") if r.get('get') else s.append("-X POST {r.get('post')}") 
     s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
     s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
     s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
-    s.append("-H 'x-sandbox-name: r.get('sandbox')'")
+    s.append("-H 'x-sandbox-name: {r.get('sandbox')}'")
     command = " ".join(s)
     return command
 
