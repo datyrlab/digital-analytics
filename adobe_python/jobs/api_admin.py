@@ -27,20 +27,20 @@ def parseArgs(argv) -> tuple:
     request = json.loads(args.get('request')) if isinstance(args.get('request'), str) else None
     return request
 
-def getCommand() -> tuple:
+def getCommand(r:dict) -> str:
     t = ims_client.getAccessToken()
     s = []
     s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
-    s.append("-X GET https://platform.adobe.io/data/foundation/schemaregistry/stats")
+    s.append("-X GET r.get('get')") if r.get('get') else s.append("-X POST r.get('post')") 
     s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
     s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
     s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
-    s.append("-H 'x-sandbox-name: PROD'")
+    s.append("-H 'x-sandbox-name: r.get('sandbox')'")
     command = " ".join(s)
     return command
 
 def sendCommand(request:dict) -> None:
-    command = getCommand()
+    command = getCommand(request)
     run = class_subprocess.Subprocess({}).run(command)
     print(run)
 
@@ -55,8 +55,7 @@ def makeDirectory(directory:str) -> None:
 if __name__ == '__main__':
     time_start = time.time()
     main()
-    #stop timer
-    if re.search("^Linux", myplatform):
+    if not re.search("^Windows", platform.platform()):
         time_finish = time.time()
         start_time = datetime.datetime.fromtimestamp(int(time_start)).strftime('%Y-%m-%d %H:%M:%S')
         finish_time = datetime.datetime.fromtimestamp(int(time_finish)).strftime('%Y-%m-%d %H:%M:%S')
