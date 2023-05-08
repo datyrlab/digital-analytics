@@ -27,6 +27,12 @@ def parseArgs(argv) -> tuple:
     request = json.loads(args.get('request')) if isinstance(args.get('request'), str) else None
     return request
 
+def getTimestamp() -> int:
+    date_time = datetime.datetime.now()
+    if re.search("^Windows", platform.platform()):
+        return int(date_time.timestamp())
+    return date_time.strftime('%s')
+
 def getCommand(r:dict) -> str:
     t = ims_client.getAccessToken()
     s = []
@@ -44,9 +50,15 @@ def sendCommand(request:dict) -> None:
     run = class_subprocess.Subprocess({}).run(command)
     print(run)
 
-    #if re.search("SUCCESS", run):
-    #    makeDirectory(directory)
-    #    class_files.Files({}).writeFile({"file":logfile, "content":data})     
+    try:
+        tsinteger = getTimestamp()
+        directory = f"{dir_admin}/{r.get('save_dir')}" if r.get('save_dir') else f"{dir_admin}/none"
+        makeDirectory(directory)
+        response = json.loads("{\""+ run +"}")
+        class_files.Files({}).writeFile({"file":f"{directory}/{tsinteger}-log.json", "content":json.dumps(response, sort_keys=False, default=str)})  
+        class_files.Files({}).writeFile({"file":f"{directory}/{tsinteger}-format.json", "content":json.dumps(response, sort_keys=False, indent=4, default=str)})  
+    except Exception as e:
+        print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
