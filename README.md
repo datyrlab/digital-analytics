@@ -87,8 +87,21 @@ python digital-analytics/adobe_python/jobs/api_admin.py `
 -re '{\"get\":\"https://platform.adobe.io/data/foundation/schemaregistry/stats\", \"sandbox\":\"prod\", \"save\":\"admin\"}'
 ```
 
-
-
+# data warehouse api 1.4
+```
+python digital-analytics/adobe_python/jobs/api_admin.py `
+--re '{"post":"https://api.omniture.com/admin/1.4/rest/?method=DataSources.Get", "postdata":
+{ \"reportDescription\": {
+    \"reportSuiteID\": \"xxxx\",
+    \"dateFrom\": \"2023-01-13 00:00:00\",
+    \"dateTo\": \"2023-01-13 12:00:00\",
+    \"fuzzyDates\": false, \"metrics\": [{\"id\": \"visits\"}],
+    \"elements\": [{\"id\": \"page\"}],
+    \"source\": \"warehouse\"
+  }
+}
+}'
+```
 
 
 

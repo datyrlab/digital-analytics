@@ -10,7 +10,6 @@ sys.path.insert(0, project_dir)
 from adobe_python.classes import class_converttime, class_files, class_subprocess
 from adobe_python.jobs import ims_client
 
-myplatform = platform.platform()
 timestamp_numeric = int(time.time() * 1000.0)
 dir_admin = f"{project_dir}/myfolder/adobe-admin"
 
@@ -33,22 +32,40 @@ def getTimestamp() -> int:
         return int(date_time.timestamp())
     return date_time.strftime('%s')
 
+def getCommand14(r:dict) -> str:
+    # adobe analytics 1.4
+    if r.get('get') and re.search(r.get('get'), "admin/1.4") or r.get('post') and re.search(r.get('post'), "admin/1.4"):
+        t = ims_client.getAccessToken()
+        s = []
+        s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
+        s.append(f"-X GET {r.get('get')}") if r.get('get') else s.append("-X POST {r.get('post')}") 
+        s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
+        s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
+        s.append("-H \"Content-Type: application/json\"")
+        s.append("-d '{r.get('postdata')}'") if r.get('postdata') else None
+        command = " ".join(s)
+        return command
+
 def getCommand(r:dict) -> str:
-    t = ims_client.getAccessToken()
-    s = []
-    s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
-    s.append(f"-X GET {r.get('get')}") if r.get('get') else s.append("-X POST {r.get('post')}") 
-    s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
-    s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
-    s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
-    s.append("-H 'x-sandbox-name: {r.get('sandbox')}'")
-    command = " ".join(s)
-    return command
+    # default edge server
+    if r.get('get') and not re.search(r.get('get'), "admin/1.4") or r.get('post') and not re.search(r.get('post'), "admin/1.4"):
+        t = ims_client.getAccessToken()
+        s = []
+        s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
+        s.append(f"-X GET {r.get('get')}") if r.get('get') else s.append("-X POST {r.get('post')}") 
+        s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
+        s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
+        s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
+        s.append("-H 'x-sandbox-name: {r.get('sandbox')}'") if r.get('sandbox') else None
+        command = " ".join(s)
+        return command
 
 def sendCommand(request:dict) -> None:
     command = getCommand(request)
-    run = class_subprocess.Subprocess({}).run(command)
-    print(run)
+    funclist = [getCommand14, getCommand]
+    clist = list(filter(None,[f(request) for f in funclist]))
+    command = clist[0] if len(clist) > 0 else None
+    run = class_subprocess.Subprocess({}).run(command) if command else None
 
     try:
         tsinteger = getTimestamp()
