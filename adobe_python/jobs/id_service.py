@@ -49,7 +49,7 @@ def getCommand(ecid:int) -> str:
     s = []
     #s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl -v")
     s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
-    s.append(f"-X GET {url}")
+    s.append(f"-X GET {url}") if re.search("^Windows", platform.platform()) else s.append(f"-X GET \"{url}\"")
     command = " ".join(s)
     print(command)
     return {"timestamp":ts, "command":command} 
