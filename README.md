@@ -13,9 +13,9 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 -re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
 ```
 
-## ID service (get and refresh visitor ECID) 
+## ID service (get/ refresh visitor ECID) 
 ```
-python3 /home/piuser/myprojects/digital-analytics/adobe_python/tests/test_ecid.py
+python3 digital-analytics/adobe_python/tests/test_ecid.py
 ```
 
 ## Datastream
