@@ -2,16 +2,20 @@
 
 ## Data Insertion
 
-### Linux
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
 -re '{"url":"https://example.sc.omtrdc.net/b/ss//6", "eventlist":["myfolder/adobe-events/test.xml"]}'
 ```
 
-### Windows
+Windows
 ```
 python digital-analytics/adobe_python/jobs/data_insertion.py `
 -re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
+```
+
+## ID service (get and refresh visitor ECID) 
+```
+python3 /home/piuser/myprojects/digital-analytics/adobe_python/tests/test_ecid.py
 ```
 
 ## Datastream
@@ -54,7 +58,6 @@ analyticsApiUrl=https://analytics.adobe.io/api
 python3 digital-analytics/adobe_python/tests/test_JWTaccesstoken.py
 ```
 
-### Linux
 json file includes identityMap
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
@@ -73,7 +76,7 @@ python3 digital-analytics/adobe_python/jobs/data_insertion.py \
 --re '{"streamid":"xxxxxx", "identityMap":"adobe_python/json/profilelist.json", "delay":true, "eventlist":["adobe_python/json/test-identitymap.json", "adobe_python/json/test.json"]}'
 ```
 
-### Windows
+Windows
 ```
 python digital-analytics/adobe_python/jobs/data_insertion.py `
 -re '{\"streamid\":\"xxxxxx\", "eventlist\":[\"adobe_python/json/test.json\"]}'
@@ -81,7 +84,7 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 
 ## api
 
-### Windows
+Windows
 ```
 python digital-analytics/adobe_python/jobs/api_admin.py `
 -re '{\"get\":\"https://platform.adobe.io/data/foundation/schemaregistry/stats\", \"sandbox\":\"prod\", \"save\":\"admin\"}'

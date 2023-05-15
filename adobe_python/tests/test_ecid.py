@@ -9,8 +9,11 @@ from adobe_python.jobs import id_service
 
 class TestIDservice(unittest.TestCase):
 
-    def test_JWTaccesstoken(self):
-        id_service.getid()
+    def test_idNew(self):
+        id_service.idNew()
+
+    def idNew(self):
+        id_service.idRefresh()
 
 
 if __name__ == '__main__':
