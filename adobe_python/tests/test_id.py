@@ -9,12 +9,14 @@ from adobe_python.jobs import id_service
 
 class TestIDservice(unittest.TestCase):
 
-    def test_idNew(self):
-        id_service.idNew()
+    def test_fpid(self):
+        id_service.fpid()
 
-    def idNew(self):
-        id_service.idRefresh()
+    def test_ecidNew(self):
+        id_service.ecidNew()
 
+    def test_ecidRefresh(self):
+        id_service.ecidRefresh()
 
 if __name__ == '__main__':
     unittest.main()

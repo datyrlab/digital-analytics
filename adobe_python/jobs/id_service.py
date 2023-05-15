@@ -23,6 +23,11 @@ def getTimestamp() -> int:
         return int(date_time.timestamp())
     return date_time.strftime('%s')
 
+def randomUniqueString() -> str:
+    # alpha-numeric
+    import uuid
+    return uuid.uuid4().hex[:25].upper()
+
 def getEnvVars() -> dict:
     config_parser = configparser.ConfigParser()
     config_parser.read(os.environ['ADOBE_CONFIG'])
@@ -49,12 +54,15 @@ def getCommand(ecid:int) -> str:
     s = []
     #s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl -v")
     s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
-    s.append(f"-X GET {url}") if re.search("^Windows", platform.platform()) else s.append(f"-X GET \"{url}\"")
+    s.append(f"-X GET \"{url}\"") if re.search("^Windows", platform.platform()) else s.append(f"-X GET {url}")
     command = " ".join(s)
     print(command)
     return {"timestamp":ts, "command":command} 
 
-def idNew() -> None:
+def fpid() -> None:
+    pass
+
+def ecidNew() -> None:
     """ response
             id: ECID
             id_sync_ttl: total seconds (7 days) the ECID is valid before a refresh
@@ -75,7 +83,7 @@ def idNew() -> None:
     except Exception as e:
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
  
-def idRefresh() -> None:
+def ecidRefresh() -> None:
     pass
 
 def makeDirectory(directory:str) -> None:

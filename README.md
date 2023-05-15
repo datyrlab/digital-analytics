@@ -15,7 +15,7 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 
 ## ID service (get/ refresh visitor ECID) 
 ```
-python3 digital-analytics/adobe_python/tests/test_ecid.py
+python3 digital-analytics/adobe_python/tests/test_id.py -v TestIDservice.test_ecidNew
 ```
 
 ## Datastream
