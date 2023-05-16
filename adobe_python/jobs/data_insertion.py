@@ -58,11 +58,23 @@ def replaceString(s:str, tsinteger:str) -> str:
         s = re.sub(find, replace, s)
     return s
 
+def storedAdobeECID(filepath:str, r:dict):
+    p = filepath.split('/')
+    fpid = p[7]
+    result = {"identityMap": { \
+            "FPID": [{"id":fpid, "authenticatedState": "ambiguous", "primary": True}], \
+            "ECID": [{"id":r.get('response',{}).get('id'),"primary": True}], \
+            "ProfileID": [{"id":"ade14f21f4142e7aefa44d2b52c5fa9b2338fc", "primary": True}] \
+        }}
+    return result.get('identityMap')
+
 def getIdentityMap(r:dict) -> dict:
     if isinstance(r.get('identityMap'), dict):
         return r.get('identityMap')
     filepath = f"{project_dir}/{r.get('identityMap')}" if isinstance(r.get('identityMap'), str) and os.path.exists(f"{project_dir}/{r.get('identityMap')}") else f"{project_dir}/adobe_python/json/profilelist.json"
     r = class_files.Files({}).readJson(filepath) if os.path.exists(filepath) else None
+    if re.search("device/", filepath):
+        return storedAdobeECID(filepath, r)
     result = random.choice(r) if isinstance(r, list) and len(r) > 0 else {"identityMap":[{"Email_LC_SHA256": [{"id":"bfdb4e7af1447741addddba0f7c8ff34114be39926cb1e7e71b69b3b9c49821b", "primary": True}]}]}
     return result.get('identityMap')
 
