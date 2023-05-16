@@ -78,8 +78,6 @@ def getIdentityMap(r:dict) -> dict:
     return result.get('identityMap')
 
 def getCommand(r:dict, filepath:str) -> dict:
-    print("r...", r)
-    print("filepath...", filepath)
     url = r.get('url')
     streamid = r.get('streamid')
     tsinteger = getTimestamp()
@@ -95,6 +93,7 @@ def getCommand(r:dict, filepath:str) -> dict:
         data = json.loads(cstr) if isinstance(cstr, str) else None
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             identitymap = getIdentityMap(r)
+            print("identitymap...", identitymap)
             profileid = [(lambda x: x)(x) for x in identitymap.get('ProfileID') if x.get('id')][0].get('id') if isinstance(identitymap.get('ProfileID'), list) else None
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat
