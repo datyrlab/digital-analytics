@@ -73,7 +73,7 @@ def getIdentityMap(r:dict) -> dict:
         return r.get('identityMap')
     filepath = f"{project_dir}/{r.get('identityMap')}" if isinstance(r.get('identityMap'), str) and os.path.exists(f"{project_dir}/{r.get('identityMap')}") else f"{project_dir}/adobe_python/json/profilelist.json"
     c = class_files.Files({}).readJson(filepath) if os.path.exists(filepath) else None
-    if re.search("device/", filepath):
+    if re.search("device", filepath):
         return storedAdobeECID(filepath, r, c)
     result = random.choice(c) if isinstance(c, list) and len(c) > 0 else {"identityMap":[{"Email_LC_SHA256": [{"id":"bfdb4e7af1447741addddba0f7c8ff34114be39926cb1e7e71b69b3b9c49821b", "primary": True}]}]}
     return result.get('identityMap')
