@@ -58,7 +58,7 @@ def replaceString(s:str, tsinteger:str) -> str:
         s = re.sub(find, replace, s)
     return s
 
-def storedAdobeECID(filepath:str, r:dict, c:dict):
+def storedAdobeECID(filepath:str, r:dict, c:dict) ->:
     p = filepath.split('/')
     fpid = p[7]
     d = {} 
