@@ -13,7 +13,20 @@ python digital-analytics/adobe_python/jobs/data_insertion.py `
 -re '{\"url\":\"https://example.sc.omtrdc.net/b/ss//6\", \"eventlist\":[\"myfolder/adobe-events/test.xml\"]}'
 ```
 
-## ID service (get/ refresh visitor ECID) 
+## ID service (create vistor IDs)
+
+FPID (first party ID for device)
+
+```
+python3 digital-analytics/adobe_python/tests/test_id.py -v TestIDservice.test_fpidNew
+```
+
+ECID (visitor ID)
+
+* id: ECID
+* id_sync_ttl: total seconds (7 days) the ECID is valid before a refresh
+* dcs_region: nearest data center
+
 ```
 python3 digital-analytics/adobe_python/tests/test_id.py -v TestIDservice.test_ecidNew
 ```
@@ -90,7 +103,7 @@ python digital-analytics/adobe_python/jobs/api_admin.py `
 -re '{\"get\":\"https://platform.adobe.io/data/foundation/schemaregistry/stats\", \"sandbox\":\"prod\", \"save\":\"admin\"}'
 ```
 
-# data warehouse api 1.4
+# Data Warehouse api 1.4
 ```
 python digital-analytics/adobe_python/jobs/api_admin.py `
 --re '{"post":"https://api.omniture.com/admin/1.4/rest/?method=DataSources.Get", "postdata":

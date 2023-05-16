@@ -11,10 +11,7 @@ from adobe_python.classes import class_converttime, class_files, class_subproces
 from adobe_python.jobs import ims_client
 
 timestamp_numeric = int(time.time() * 1000.0)
-dir_fcid = f"{project_dir}/myfolder/adobe-fcid"
-dir_cookies = f"{project_dir}/myfolder/adobe-cookies"
-dir_cookies_for = f"{project_dir}/myfolder/adobe-cookies-format"
-dir_cookies_exp = f"{project_dir}/myfolder/adobe-cookies-expired"
+dir_device = f"{project_dir}/myfolder/device"
 
 
 def getTimestamp() -> int:
@@ -24,7 +21,6 @@ def getTimestamp() -> int:
     return date_time.strftime('%s')
 
 def randomUniqueString() -> str:
-    # alpha-numeric
     import uuid
     return uuid.uuid4().hex[:25].upper()
 
@@ -56,35 +52,33 @@ def getCommand(ecid:int) -> str:
     s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
     s.append(f"-X GET {url}")
     command = " ".join(s)
-    print(command)
     return {"timestamp":ts, "command":command} 
 
-def fpid() -> None:
-    pass
+def fpidNew() -> None:
+    i = randomUniqueString()
+    dir_fpid = f"{dir_device}/{i}"
+    makeDirectory(dir_fpid)
+    ecidNew(dir_fpid)
 
-def ecidNew() -> None:
-    """ response
-            id: ECID
-            id_sync_ttl: total seconds (7 days) the ECID is valid before a refresh
-            dcs_region: nearest data center
-    """
+def fpidGet(dir_fpid:str) -> None:
+    filelist = os.listdir(dir_fpid) if os.path.exists(dir_fpid) else None
+    if isinstance(filelist, list) and len(filelist) > 0:
+        paths = [os.path.join(dir_fpid, basename) for basename in filelist]
+        return max(paths, key=os.path.getctime)
+
+def ecidNew(dir_fpid:str) -> None:
     r = getCommand(None)
     run = class_subprocess.Subprocess({}).run(r.get('command'))
     try:
-        makeDirectory(dir_cookies)
-        makeDirectory(dir_cookies_for)
         response = json.loads("{\""+ run +"}") if re.search("^id", run) else run
         end_seconds = int(r.get('timestamp'))+int(response.get('id_sync_ttl'))
         request = {"command":r.get('command'), "timestamp":int(r.get('timestamp'))}
         response['timestamp'] = {"start":{"seconds":int(r.get('timestamp')), "string":datetime.datetime.fromtimestamp(int(r.get('timestamp'))).strftime("%A, %B %d, %Y %I:%M:%S")}, "end":{"seconds":end_seconds, "string":datetime.datetime.fromtimestamp(end_seconds).strftime("%A, %B %d, %Y %I:%M:%S")}}
-        class_files.Files({}).writeFile({"file":f"{dir_cookies}/{response.get('id')}.json", "content":json.dumps({"request":request, "response":response}, sort_keys=False, default=str)})  
-        class_files.Files({}).writeFile({"file":f"{dir_cookies_for}/{response.get('id')}.json", "content":json.dumps({"request":request, "response":response}, sort_keys=False, indent=4, default=str)})  
+        #class_files.Files({}).writeFile({"file":f"{dir_fpid}/{response.get('id')}-{r.get('timestamp')}.json", "content":json.dumps({"request":request, "response":response}, sort_keys=False, default=str)})  
+        class_files.Files({}).writeFile({"file":f"{dir_fpid}/{response.get('id')}.json", "content":json.dumps({"request":request, "response":response}, sort_keys=False, default=str)})  
         print("id:", response.get('id')) if isinstance(response, dict) else print("error:", run)
     except Exception as e:
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
- 
-def ecidRefresh() -> None:
-    pass
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
