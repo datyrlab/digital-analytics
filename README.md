@@ -66,8 +66,9 @@ analyticsApiUrl=https://analytics.adobe.io/api
 ```
 
 ### Test JWT connection
+
+returns an access token
 ```
-# returns an access token
 python3 digital-analytics/adobe_python/tests/test_JWTaccesstoken.py
 ```
 
