@@ -124,8 +124,7 @@ def useFile(data:dict) -> str:
 
 def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
-    print(r)
-    """if isinstance(r, dict):
+    if isinstance(r, dict):
         print("data =====>", json.dumps(r.get('data')), "\n")
         run = class_subprocess.Subprocess({}).run(r.get('command'))
         if re.search(".xml$", filepath) and re.search("SUCCESS", run):
@@ -146,7 +145,7 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
                 time.sleep(random.randint(2, 8)) if len(request.get('eventlist')) > 1 and request.get('delay') else None
             except Exception as e:
                 print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
-    """
+
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
         os.makedirs(directory)
