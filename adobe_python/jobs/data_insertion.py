@@ -104,7 +104,7 @@ def getCommand(r:dict, filepath:str) -> dict:
             else: 
                 data["event"]["xdm"]["cea"]["profileid"] = profileid
         
-        print(data)
+        print("-----",data)
 
         """
         s = []
