@@ -103,7 +103,10 @@ def getCommand(r:dict, filepath:str) -> dict:
                 data["event"]["xdm"]["cea"] = {"profileid":profileid}
             else: 
                 data["event"]["xdm"]["cea"]["profileid"] = profileid
-                
+        
+        print(data)
+
+        """
         s = []
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
         s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
@@ -114,6 +117,7 @@ def getCommand(r:dict, filepath:str) -> dict:
         s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", platform.platform()) else s.append(f"-d '{json.dumps(data)}'")
         command = " ".join(s)
         return {"date":datetime.datetime.now().strftime("%Y%m%d"), "time":tsinteger, "data":data, "command":command}
+        """
 
 def useFile(data:dict) -> str:
     makeDirectory(dir_tmp)
