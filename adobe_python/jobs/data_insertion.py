@@ -18,6 +18,7 @@ testcode = "beta"
 
 def main():
     request = parseArgs(sys.argv)
+    print("request...", request)
     parseRequest(request)
 
 def parseArgs(argv) -> tuple:
@@ -44,7 +45,6 @@ def getTimestampFormat() -> int:
     return f"{s[:-3]}Z"
 
 def randomUniqueString() -> str:
-    # alpha-numeric
     import uuid
     return uuid.uuid4().hex[:25].upper()
 
@@ -69,7 +69,6 @@ def storedAdobeECID(filepath:str, r:dict, c:dict) -> dict:
     return d
 
 def getIdentityMap(r:dict) -> dict:
-    print("++++", r)
     if isinstance(r.get('identityMap'), dict):
         return r.get('identityMap')
     filepath = f"{project_dir}/{r.get('identityMap')}" if isinstance(r.get('identityMap'), str) and os.path.exists(f"{project_dir}/{r.get('identityMap')}") else f"{project_dir}/adobe_python/json/profilelist.json"
