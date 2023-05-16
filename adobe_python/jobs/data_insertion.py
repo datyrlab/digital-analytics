@@ -59,8 +59,7 @@ def replaceString(s:str, tsinteger:str) -> str:
 
 def storedAdobeECID(filepath:str, r:dict, c:dict) -> dict:
     p = filepath.split('/')
-    print("p...", p)
-    fpid = p[7]
+    fpid = p[3] if re.search("^Windows", platform.platform()) else p[7]
     d = {} 
     d["FPID"] = [{"id":fpid, "authenticatedState": "ambiguous", "primary": True}]
     d["ECID"] = [{"id":c.get('response',{}).get('id'),"primary": True}]
