@@ -83,6 +83,8 @@ def getCommand(r:dict, filepath:str) -> dict:
     tsinteger = getTimestamp()
     c = class_files.Files({}).readFile(filepath)
     cstr = replaceString("".join(c), str(tsinteger)) if isinstance(c, list) and len(c) > 0 else None
+    
+    print("cstr...", cstr)
 
     if re.search(".xml$", filepath):
         return {"data":cstr, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{cstr}\""}
@@ -93,7 +95,6 @@ def getCommand(r:dict, filepath:str) -> dict:
         data = json.loads(cstr) if isinstance(cstr, str) else None
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             identitymap = getIdentityMap(r)
-            print("identitymap...", identitymap)
             profileid = [(lambda x: x)(x) for x in identitymap.get('ProfileID') if x.get('id')][0].get('id') if isinstance(identitymap.get('ProfileID'), list) else None
             data["event"]["xdm"]["_id"] = randomUniqueString()
             data["event"]["xdm"]["timestamp"] = tsformat
