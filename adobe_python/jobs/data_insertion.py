@@ -18,7 +18,6 @@ testcode = "beta"
 
 def main():
     request = parseArgs(sys.argv)
-    print("request...", request)
     parseRequest(request)
 
 def parseArgs(argv) -> tuple:
@@ -79,6 +78,8 @@ def getIdentityMap(r:dict) -> dict:
     return result.get('identityMap')
 
 def getCommand(r:dict, filepath:str) -> dict:
+    print("r...", r)
+    print("filepath...", filepath)
     url = r.get('url')
     streamid = r.get('streamid')
     tsinteger = getTimestamp()
@@ -127,7 +128,6 @@ def useFile(data:dict) -> str:
 
 def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
-    print(r) 
     """if isinstance(r, dict):
         print("data =====>", json.dumps(r.get('data')), "\n")
         run = class_subprocess.Subprocess({}).run(r.get('command'))
