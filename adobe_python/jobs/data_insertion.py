@@ -84,8 +84,6 @@ def getCommand(r:dict, filepath:str) -> dict:
     c = class_files.Files({}).readFile(filepath)
     cstr = replaceString("".join(c), str(tsinteger)) if isinstance(c, list) and len(c) > 0 else None
     
-    print("filepath...", filepath)
-
     if re.search(".xml$", filepath):
         return {"data":cstr, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{cstr}\""}
     
@@ -105,8 +103,6 @@ def getCommand(r:dict, filepath:str) -> dict:
             else: 
                 data["event"]["xdm"]["cea"]["profileid"] = profileid
         
-
-        """
         s = []
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
         s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
@@ -117,7 +113,6 @@ def getCommand(r:dict, filepath:str) -> dict:
         s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", platform.platform()) else s.append(f"-d '{json.dumps(data)}'")
         command = " ".join(s)
         return {"date":datetime.datetime.now().strftime("%Y%m%d"), "time":tsinteger, "data":data, "command":command}
-        """
 
 def useFile(data:dict) -> str:
     makeDirectory(dir_tmp)
@@ -128,7 +123,7 @@ def useFile(data:dict) -> str:
 
 def sendCommand(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
-    """if isinstance(r, dict):
+    if isinstance(r, dict):
         print("data =====>", json.dumps(r.get('data')), "\n")
         run = class_subprocess.Subprocess({}).run(r.get('command'))
         if re.search(".xml$", filepath) and re.search("SUCCESS", run):
@@ -149,7 +144,6 @@ def sendCommand(index:int, request:dict, filepath:str) -> None:
                 time.sleep(random.randint(2, 8)) if len(request.get('eventlist')) > 1 and request.get('delay') else None
             except Exception as e:
                 print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
-    """
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
