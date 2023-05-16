@@ -84,7 +84,7 @@ def getCommand(r:dict, filepath:str) -> dict:
     c = class_files.Files({}).readFile(filepath)
     cstr = replaceString("".join(c), str(tsinteger)) if isinstance(c, list) and len(c) > 0 else None
     
-    print("c...", c)
+    print("filepath...", filepath)
 
     if re.search(".xml$", filepath):
         return {"data":cstr, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{cstr}\""}
