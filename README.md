@@ -75,25 +75,25 @@ python3 digital-analytics/adobe_python/tests/test_JWTaccesstoken.py
 json file includes identityMap
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"streamid":"xxxxxx", "eventlist":["adobe_python/json/test-identitymap.json"]}'
+-re '{"streamid":"xxxxxx", "eventlist":["adobe_python/json/test-identitymap.json"]}'
 ```
 
 command includes identityMap
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"streamid":"xxxxxx", "identityMap":{"Email_LC_SHA256": [{"id":"4ffccd7323a0085c7785c81c668f6f3507c21d999255e454d7f9bc68c1f82ac8", "primary": true}]}, "eventlist":["adobe_python/json/test.json"]}'
+-re '{"streamid":"xxxxxx", "identityMap":{"Email_LC_SHA256": [{"id":"4ffccd7323a0085c7785c81c668f6f3507c21d999255e454d7f9bc68c1f82ac8", "primary": true}]}, "eventlist":["adobe_python/json/test.json"]}'
 ```
 
 get a random identityMap from file
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"streamid":"xxxxxx", "identityMap":"adobe_python/json/profilelist.json", "delay":true, "eventlist":["adobe_python/json/test-identitymap.json", "adobe_python/json/test.json"]}'
+-re '{"streamid":"xxxxxx", "identityMap":"adobe_python/json/profilelist.json", "delay":true, "eventlist":["adobe_python/json/test-identitymap.json", "adobe_python/json/test.json"]}'
 ```
 
 adobe generated ecid stored in device directory 
 ```
 python3 digital-analytics/adobe_python/jobs/data_insertion.py \
---re '{"streamid":"xxxxxx", "identityMap":"myfolder/device/xxxxxxx/xxxxxx.json", "ProfileID":[{"id":"xxxxxx", "primary": true}], "eventlist":["myfolder/adobe-events/web.json"]}'
+-re '{"streamid":"xxxxxx", "identityMap":"myfolder/device/xxxxxxx/xxxxxx.json", "ProfileID":[{"id":"xxxxxx", "primary": true}], "eventlist":["myfolder/adobe-events/web.json"]}'
 ```
 
 Windows
@@ -113,7 +113,7 @@ python digital-analytics/adobe_python/jobs/api_admin.py `
 # Data Warehouse api 1.4
 ```
 python digital-analytics/adobe_python/jobs/api_admin.py `
---re '{"post":"https://api.omniture.com/admin/1.4/rest/?method=DataSources.Get", "postdata":
+-re '{"post":"https://api.omniture.com/admin/1.4/rest/?method=DataSources.Get", "postdata":
 { \"reportDescription\": {
     \"reportSuiteID\": \"xxxx\",
     \"dateFrom\": \"2023-01-13 00:00:00\",
