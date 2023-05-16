@@ -64,7 +64,7 @@ def storedAdobeECID(filepath:str, r:dict, c:dict) -> dict:
     d["FPID"] = [{"id":fpid, "authenticatedState": "ambiguous", "primary": True}]
     d["ECID"] = [{"id":c.get('response',{}).get('id'),"primary": True}]
     if r.get('ProfileID'):
-        d.update(r.get('ProfileID'))
+        d["ProfileID"] = r.get('ProfileID')
     return d
 
 def getIdentityMap(r:dict) -> dict:
