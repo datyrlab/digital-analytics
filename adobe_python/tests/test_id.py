@@ -18,9 +18,8 @@ class TestIDservice(unittest.TestCase):
     def test_fpidGet(self):
         file = id_service.fpidGet(dir_fpid)
         command = f"Get-Content -Path {file}" if re.search("^Windows", platform.platform()) else f"cat {file}"
-        #run = class_subprocess.Subprocess({}).run(command) if file else None
-        os.system(command)
-        #print(run)
+        run = class_subprocess.Subprocess({}).run(command) if file else None
+        print(run)
 
     def test_ecidNew(self):
         id_service.ecidNew(dir_fpid)
