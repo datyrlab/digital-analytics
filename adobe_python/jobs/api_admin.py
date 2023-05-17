@@ -54,7 +54,7 @@ def getCommand(r:dict) -> str:
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
         s.append(f"-X GET \"{r.get('get')}\"") if r.get('get') else s.append("-X POST {r.get('post')}") 
         #if re.search("schema/registry/tenant", r.get('get')):
-        s.append(f"-H \"Accept: application/vnd.adobe.xed-id+json\"")
+        s.append(f"-H \"Accept: application/vnd.adobe.xed-id+json;version=1\"")
         s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
         s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
         s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
