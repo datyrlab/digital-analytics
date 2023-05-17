@@ -24,8 +24,9 @@ def parseArgs(argv) -> tuple:
     namespace = parser.parse_known_args(argv)[0]
     
     args = {k: v for k, v in vars(namespace).items() if v is not None}
-    request = json.loads(args.get('request')) if isinstance(args.get('request'), str) else None
-    return request
+    print(args)
+    #request = json.loads(args.get('request')) if isinstance(args.get('request'), str) else None
+    #return request
 
 def getTimestamp() -> int:
     date_time = datetime.datetime.now()
