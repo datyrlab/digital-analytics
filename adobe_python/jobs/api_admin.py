@@ -77,8 +77,7 @@ def sendCommand(request:dict) -> None:
         os.remove(path) if os.path.exists(path) else None
         makeDirectory(os.path.dirname(path))
         response = json.loads("{\""+ run +"}")
-        class_files.Files({}).writeFile({"file":f"{path}-log.json", "content":json.dumps(response, sort_keys=False, default=str)})  
-        class_files.Files({}).writeFile({"file":f"{path}-format.json", "content":json.dumps(response, sort_keys=False, indent=4, default=str)})  
+        class_files.Files({}).writeFile({"file":f"{path}.json", "content":json.dumps(response, sort_keys=False, indent=4, default=str)})  
     except Exception as e:
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 
