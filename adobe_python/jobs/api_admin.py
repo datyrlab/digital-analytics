@@ -15,8 +15,7 @@ dir_admin = f"{project_dir}/myfolder/adobe-admin"
 
 def main():
     request = parseArgs(sys.argv)
-    print(request)
-    #sendCommand(request)
+    sendCommand(request)
 
 def parseArgs(argv) -> tuple:
     parser = argparse.ArgumentParser()
@@ -24,9 +23,8 @@ def parseArgs(argv) -> tuple:
     namespace = parser.parse_known_args(argv)[0]
     
     args = {k: v for k, v in vars(namespace).items() if v is not None}
-    print(args)
-    #request = json.loads(args.get('request')) if isinstance(args.get('request'), str) else None
-    #return request
+    request = json.loads(args.get('request')) if isinstance(args.get('request'), str) else None
+    return request
 
 def getTimestamp() -> int:
     date_time = datetime.datetime.now()
