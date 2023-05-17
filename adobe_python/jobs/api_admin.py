@@ -65,9 +65,8 @@ def sendCommand(request:dict) -> None:
     funclist = [getCommand14, getCommand]
     clist = list(filter(None,[f(request) for f in funclist]))
     command = clist[0] if len(clist) > 0 else None
-    print("command...", command)
+    print("command ====>", command)
 
-    """
     run = class_subprocess.Subprocess({}).run(command) if command else None
     
     try:
@@ -79,7 +78,6 @@ def sendCommand(request:dict) -> None:
         class_files.Files({}).writeFile({"file":f"{path}-format.json", "content":json.dumps(response, sort_keys=False, indent=4, default=str)})  
     except Exception as e:
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
-    """
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
