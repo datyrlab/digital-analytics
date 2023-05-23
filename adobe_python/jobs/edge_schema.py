@@ -29,7 +29,7 @@ def parseArgs(argv) -> tuple:
 
 def parseJson(filelist:list) -> dict:
     if isinstance(filelist, list) and len(filelist) > 0:
-        d = class_files.Files({}).readJson(filelist[0])
+        d = class_files.Files({}).readJson(f"{project_dir}/{filelist[0]}")
         for k, v in d.items():
             print(f"{k}: {v}") if isinstance(v, str) or isinstance(v, list)  else print(f"\033[1;33m{k}: {str(type(v))}\033[0m") 
 
