@@ -7,9 +7,9 @@ project_dir = os.path.dirname(package_dir)
 sys.path.insert(0, project_dir)
 from adobe_python.jobs import ims_client
 
-class TestJWTaccessToken(unittest.TestCase):
+class TestJwtAccessToken(unittest.TestCase):
 
-    def test_JWTaccesstoken(self):
+    def test_jwtaccesstoken(self):
         print(ims_client.getAccessToken())
 
 

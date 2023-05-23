@@ -69,7 +69,7 @@ analyticsApiUrl=https://analytics.adobe.io/api
 
 returns an access token
 ```
-python3 digital-analytics/adobe_python/tests/test_JWTaccesstoken.py
+python3 digital-analytics/adobe_python/tests/test_jwtaccesstoken.py
 ```
 
 json file includes identityMap

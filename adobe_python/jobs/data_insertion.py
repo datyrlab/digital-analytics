@@ -8,7 +8,7 @@ package_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 project_dir = os.path.dirname(package_dir)
 sys.path.insert(0, project_dir)
 from adobe_python.classes import class_converttime, class_files, class_subprocess
-from adobe_python.jobs import ims_client
+from adobe_python.jobs import ims_client, oauth
 
 timestamp_numeric = int(time.time() * 1000.0)
 dir_tmp = f"{project_dir}/myfolder/adobe-events-sent/tmp"
@@ -88,7 +88,7 @@ def getCommand(r:dict, filepath:str) -> dict:
     
     elif re.search(".json$", filepath):
         tsformat = getTimestampFormat()
-        t = ims_client.getAccessToken()
+        t = oauth.getAccessToken()
         data = json.loads(cstr) if isinstance(cstr, str) else None
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             identitymap = getIdentityMap(r)

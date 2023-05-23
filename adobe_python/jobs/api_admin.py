@@ -8,7 +8,7 @@ package_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 project_dir = os.path.dirname(package_dir)
 sys.path.insert(0, project_dir)
 from adobe_python.classes import class_converttime, class_files, class_subprocess
-from adobe_python.jobs import ims_client
+from adobe_python.jobs import ims_client, oauth
 
 timestamp_numeric = int(time.time() * 1000.0)
 dir_admin = f"{project_dir}/myfolder/adobe-admin"
@@ -32,10 +32,10 @@ def getTimestamp() -> int:
         return int(date_time.timestamp())
     return date_time.strftime('%s')
 
-def getCommand14(r:dict) -> str:
+def getCommand_1_4(r:dict) -> str:
     # adobe analytics 1.4
     if r.get('get') and re.search(r.get('get'), "admin/1.4") or r.get('post') and re.search(r.get('post'), "admin/1.4"):
-        t = ims_client.getAccessToken()
+        t = oauth.getAccessToken()
         s = []
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
         s.append(f"-X GET {r.get('get')}") if r.get('get') else s.append("-X POST {r.get('post')}") 
@@ -46,10 +46,17 @@ def getCommand14(r:dict) -> str:
         command = " ".join(s)
         return command
 
+def useFile(data:dict) -> str:
+    makeDirectory(dir_tmp)
+    filepath = f"{dir_tmp}/data.json"
+    os.remove(filepath) if os.path.exists(filepath) else None
+    class_files.Files({}).writeFile({"file":filepath, "content":json.dumps(data, sort_keys=False, default=str)})
+    return filepath
+
 def getCommand(r:dict) -> str:
     # default edge server
     if r.get('get') and not re.search(r.get('get'), "admin/1.4") or r.get('post') and not re.search(r.get('post'), "admin/1.4"):
-        t = ims_client.getAccessToken()
+        t = oauth.getAccessToken()
         s = []
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
         s.append(f"-X GET \"{r.get('get')}\"") if r.get('get') else s.append("-X POST {r.get('post')}") 
@@ -64,7 +71,7 @@ def getCommand(r:dict) -> str:
 
 def sendCommand(request:dict) -> None:
     command = getCommand(request)
-    funclist = [getCommand14, getCommand]
+    funclist = [getCommand]
     clist = list(filter(None,[f(request) for f in funclist]))
     command = clist[0] if len(clist) > 0 else None
     print("command ====>", command)
@@ -74,10 +81,14 @@ def sendCommand(request:dict) -> None:
     try:
         tsinteger = getTimestamp()
         path = f"{project_dir}/{request.get('save')}" if request.get('save') else f"{project_dir}/myfolder/adobe-admin/{tsinteger}"
+        p = class_files.Files({}).fileProperties(path)
+        path_format = f"{p.get('path')}/{p.get('name')}-format{p.get('file_extension')}" 
         os.remove(path) if os.path.exists(path) else None
+        os.remove(path_format) if os.path.exists(path_format) else None
         makeDirectory(os.path.dirname(path))
         response = json.loads("{\""+ run +"}")
-        class_files.Files({}).writeFile({"file":f"{path}", "content":json.dumps(response, sort_keys=False, indent=4, default=str)})  
+        class_files.Files({}).writeFile({"file":f"{path}", "content":json.dumps(response, sort_keys=False, default=str)})  
+        class_files.Files({}).writeFile({"file":f"{path_format}", "content":json.dumps(response, sort_keys=False, indent=4, default=str)})  
     except Exception as e:
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 
