@@ -31,7 +31,75 @@ def parseJson(filelist:list) -> dict:
     if isinstance(filelist, list) and len(filelist) > 0:
         d = class_files.Files({}).readJson(f"{project_dir}/{filelist[0]}")
         for k, v in d.items():
-            print(f"{k}: {v}") if isinstance(v, str) or isinstance(v, list)  else print(f"\033[1;33m{k}: {str(type(v))}\033[0m") 
+            print(f"{k}: {v}") if isinstance(v, str) or isinstance(v, list) else print(f"\033[1;33m{k}: {str(type(v))}\033[0m") 
+        for k, v in d.items():
+            if isinstance(v, dict):
+                print(f"\033[1;36m{k}: {str(type(v))}\033[0m")
+                
+                parseProperties(v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties'))
+
+                #parseProperties(v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties'), "customDimensions")
+                #parseProperties(v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties'), "endUser")
+                #parseProperties(v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties'), "environment")
+
+                """
+                parseKeys(properties)
+                parseFields("^eVar", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('customDimensions',{}).get('properties',{}).get('eVars',{}).get('properties'))
+                parseFields("^hier", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('customDimensions',{}).get('properties',{}).get('hierarchies',{}).get('properties',{}))
+                parseFields("^prop", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('customDimensions',{}).get('properties',{}).get('listProps',{}).get('properties'))
+                parseFields("^List", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('customDimensions',{}).get('properties',{}).get('lists',{}).get('properties'))
+                #parseFields("^none", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('customDimensions',{}).get('properties',{}).get('postalCode',{}))
+                parseFields("^none", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('endUser',{}).get('properties'))
+                parseFields("^none", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('environment',{}).get('properties'))
+                """
+
+def parseProperties(properties:dict):
+    if isinstance(properties, dict):
+        for k in properties.keys():
+            parseObj(k, properties.get(k)) if isinstance(properties.get(k), dict) else None
+
+def parseObj(pk:str, properties:dict):
+    for k, v in properties.items():
+        parseObjProperties(pk, v) if isinstance(v, dict) else None # k = properties
+
+def parseObjProperties(pk:str, properties:dict):
+    for k, v in properties.items():
+        parseFields(pk, k, v)
+
+def parseFields(pk:str, key:str, properties:dict):
+    for k, v in properties.items():
+        #int(pk, key, v) if isinstance(v, dict) else None # k = properties
+        parseFieldNames(pk, key, v)  if isinstance(v, dict) else None # k = properties
+
+def parseFieldNames(pk:str, key:str, properties:dict):
+    for k, v in properties.items():
+        print(pk, key, k, v) if isinstance(v, dict) else None # k = properties
+
+
+
+def parsePropertiesy(properties:dict, pk):
+    if isinstance(properties, dict) and isinstance(properties.get(pk,{}).get('properties'), dict):
+        p = properties.get(pk,{}).get('properties')
+        {k:parseFields(f"{pk}\t{k}", v) for (k, v) in p.items()} 
+    else:
+        print(type(properties))
+
+def parsePropertiesx(item:dict):
+    if isinstance(item, dict) and isinstance(item.get('properties'), dict):
+        {k:parseFields(k, v.get(k)) for (k, v) in item.get('properties').items() if isinstance(v, dict)} 
+
+def parseFieldsx(pk:str, properties:dict):
+    if isinstance(properties, dict):
+        for k, v in properties.items():
+            if isinstance(v, dict):
+                print(f"{pk}\t{k}\t{ v.get('title')}\t{v.get('type')}\t{v.get('description')}")
+                parseNested(k, v.get('properties'))
+
+def parseNested(parentKey:str, properties:dict):
+    if isinstance(properties, dict):
+        for k, v in properties.items():
+            print(f"{parentKey} -> {k}\t{ v.get('title')}\t{v.get('type')}\t{v.get('description')}")
+            parseNested(f"{parentKey} -> {k}", v.get('properties'))
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
