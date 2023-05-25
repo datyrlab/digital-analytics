@@ -13,6 +13,7 @@ from adobe_python.jobs import ims_client, oauth
 
 timestamp_numeric = int(time.time() * 1000.0)
 dir_admin = f"{project_dir}/myfolder/adobe-admin"
+dir_schema = f"{project_dir}/myfolder/schema"
 
 def main():
     imp = parseArgs(sys.argv)
@@ -30,76 +31,88 @@ def parseArgs(argv) -> tuple:
 def parseJson(filelist:list) -> dict:
     if isinstance(filelist, list) and len(filelist) > 0:
         d = class_files.Files({}).readJson(f"{project_dir}/{filelist[0]}")
-        for k, v in d.items():
-            print(f"{k}: {v}") if isinstance(v, str) or isinstance(v, list) else print(f"\033[1;33m{k}: {str(type(v))}\033[0m") 
-        for k, v in d.items():
-            if isinstance(v, dict):
-                print(f"\033[1;36m{k}: {str(type(v))}\033[0m")
-                
-                parseProperties(v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties'))
+        parse(None, d)
 
-                #parseProperties(v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties'), "customDimensions")
-                #parseProperties(v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties'), "endUser")
-                #parseProperties(v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties'), "environment")
+        print()
+        parse("properties", d.get('properties'))
+        
+        _id = d.get('properties').get('_id')
+        customDimensions = d.get('properties').get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties').get('customDimensions')
+        application = d.get('properties').get('application')
+        channel = d.get('properties').get('channel')
+        commerce = d.get('properties').get('commerce')
+        environment = d.get('properties').get('environment')
+        eventType = d.get('properties').get('eventType')
+        identityMap = d.get('properties').get('identityMap').get('additionalProperties').get('items')
+        profileStitch = d.get('properties').get('profileStitch').get('items')
+        receivedTimestamp = d.get('properties').get('receivedTimestamp')
+        timestamp = d.get('properties').get('timestamp')
+        web = d.get('properties').get('web')
+        
+        print("\n_id")
+        print(_id)
+        
+        parse("customDimensions", customDimensions.get('properties'))
+        parseObject("customDimensions", customDimensions)        
+        
+        parse("web", web.get('properties'))
+        parseObject("web", web)        
+        
+        parse("application", application.get('properties'))
+        parseObject("application", application)        
+        
+        parse("channel", channel.get('properties'))
+        parseObject("channel", channel)        
 
-                """
-                parseKeys(properties)
-                parseFields("^eVar", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('customDimensions',{}).get('properties',{}).get('eVars',{}).get('properties'))
-                parseFields("^hier", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('customDimensions',{}).get('properties',{}).get('hierarchies',{}).get('properties',{}))
-                parseFields("^prop", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('customDimensions',{}).get('properties',{}).get('listProps',{}).get('properties'))
-                parseFields("^List", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('customDimensions',{}).get('properties',{}).get('lists',{}).get('properties'))
-                #parseFields("^none", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('customDimensions',{}).get('properties',{}).get('postalCode',{}))
-                parseFields("^none", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('endUser',{}).get('properties'))
-                parseFields("^none", v.get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties',{}).get('environment',{}).get('properties'))
-                """
+        parse("commerce", commerce.get('properties'))
+        parseObject("commerce", commerce)        
 
-def parseProperties(properties:dict):
-    if isinstance(properties, dict):
-        for k in properties.keys():
-            parseObj(k, properties.get(k)) if isinstance(properties.get(k), dict) else None
+        parse("environment", environment.get('properties'))
+        parseObject("environment", environment)        
 
-def parseObj(pk:str, properties:dict):
-    for k, v in properties.items():
-        parseObjProperties(pk, v) if isinstance(v, dict) else None # k = properties
+        parse("eventType", eventType)
+        parseObject("eventType", eventType)        
 
-def parseObjProperties(pk:str, properties:dict):
-    for k, v in properties.items():
-        parseFields(pk, k, v)
+        parse("identityMap", identityMap.get('properties'))
+        parseObject("identityMap", identityMap)        
 
-def parseFields(pk:str, key:str, properties:dict):
-    for k, v in properties.items():
-        #int(pk, key, v) if isinstance(v, dict) else None # k = properties
-        parseFieldNames(pk, key, v)  if isinstance(v, dict) else None # k = properties
+        parse("profileStitch", profileStitch.get('properties'))
+        parseObject("profileStitch", profileStitch)        
 
-def parseFieldNames(pk:str, key:str, properties:dict):
-    for k, v in properties.items():
-        print(pk, key, k, v) if isinstance(v, dict) else None # k = properties
+        parse("receivedTimestamp", receivedTimestamp)
+        parseObject("receivedTimestamp", receivedTimestamp)        
+
+        parse("timestamp", timestamp)
+        parseObject("timestamp", timestamp)        
 
 
+def checkKey(d:dict, k:str):
+    return k if k in d else False
 
-def parsePropertiesy(properties:dict, pk):
-    if isinstance(properties, dict) and isinstance(properties.get(pk,{}).get('properties'), dict):
-        p = properties.get(pk,{}).get('properties')
-        {k:parseFields(f"{pk}\t{k}", v) for (k, v) in p.items()} 
+def parse(name, d:dict):
+    print(name)
+    {print(f"{k}\t{v}") if not isinstance(v, dict) else print(f"\033[1;33m{k}\t{str(type(v))}\033[0m") for (k, v) in d.items()} 
+
+def propertiesToList(filepath:str, d:dict):
+    if isinstance(d, dict) and d.get('properties'):
+        l = [{k:v} for (k, v) in d.get('properties').items()]
+        writeFile(filepath, l)
+        return l
+    writeFile(filepath, d)
+    return d
+
+def writeFile(filepath, d:Any) -> None:
+    directory = os.path.dirname(filepath) 
+    makeDirectory(directory)
+    class_files.Files({}).writeFile({"file":filepath, "content":json.dumps(d, sort_keys=False, indent=4, default=str)}) if not os.path.exists(filepath) else None
+ 
+def parseObject(name:str, d:dict):
+    if d.get('properties'):
+        for k in d.get('properties').keys():
+            #print(d.get('properties').get(k))
+            propertiesToList(f"{dir_schema}/{name}/{k}.json", d.get('properties').get(k))
     else:
-        print(type(properties))
-
-def parsePropertiesx(item:dict):
-    if isinstance(item, dict) and isinstance(item.get('properties'), dict):
-        {k:parseFields(k, v.get(k)) for (k, v) in item.get('properties').items() if isinstance(v, dict)} 
-
-def parseFieldsx(pk:str, properties:dict):
-    if isinstance(properties, dict):
-        for k, v in properties.items():
-            if isinstance(v, dict):
-                print(f"{pk}\t{k}\t{ v.get('title')}\t{v.get('type')}\t{v.get('description')}")
-                parseNested(k, v.get('properties'))
-
-def parseNested(parentKey:str, properties:dict):
-    if isinstance(properties, dict):
-        for k, v in properties.items():
-            print(f"{parentKey} -> {k}\t{ v.get('title')}\t{v.get('type')}\t{v.get('description')}")
-            parseNested(f"{parentKey} -> {k}", v.get('properties'))
+        propertiesToList(f"{dir_schema}/{name}/{name}.json", d)
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
