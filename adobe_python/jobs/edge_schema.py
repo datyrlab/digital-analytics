@@ -91,7 +91,8 @@ def checkKey(d:dict, k:str):
 
 def parse(name, d:dict):
     print(name)
-    {print(f"{k}\t{v}") if not isinstance(v, dict) else print(f"\033[1;33m{k}\t{str(type(v))}\033[0m") for (k, v) in d.items()} 
+    #{print(f"{k}\t{v}") if not isinstance(v, dict) else print(f"\033[1;33m{k}\t{str(type(v))}\033[0m") for (k, v) in d.items()} 
+    {print(f"{k}\t{v}") if not isinstance(v, dict) else print(f"{k}\t{str(type(v))}") for (k, v) in d.items()} 
 
 def propertiesToList(filepath:str, d:dict):
     if isinstance(d, dict) and d.get('properties'):
