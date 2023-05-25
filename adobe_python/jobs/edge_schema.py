@@ -107,10 +107,12 @@ def adocCodeBlock(filepath:str):
     if ext != "adoc":
         s.append(f"[source%nowrap,{ext}]")
         s.append("----")
-        s.append(f"include::{plist[-1]}/{p.get('name')}{p.get('file_extension')}[]")
+        #s.append(f"include::{plist[-1]}/{p.get('name')}{p.get('file_extension')}[]")
+        s.append(f"include::{filepath}[]")
         s.append("----\n")
     else:
-        s.append(f"include::{plist[-1]}/{p.get('name')}{p.get('file_extension')}[]")
+        #s.append(f"include::{plist[-1]}/{p.get('name')}{p.get('file_extension')}[]")
+        s.append(f"include::{filepath}[]")
         
     return "\n".join(s)
 
