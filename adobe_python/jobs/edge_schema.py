@@ -18,6 +18,7 @@ dir_schema = f"{project_dir}/myfolder/schema"
 def main():
     imp = parseArgs(sys.argv)
     parseJson(imp.get('filelist'))
+    createAdoc()
 
 def parseArgs(argv) -> tuple:
     parser = argparse.ArgumentParser()
@@ -31,10 +32,8 @@ def parseArgs(argv) -> tuple:
 def parseJson(filelist:list) -> dict:
     if isinstance(filelist, list) and len(filelist) > 0:
         d = class_files.Files({}).readJson(f"{project_dir}/{filelist[0]}")
-        parse(None, d)
-
-        print()
-        parse("properties", d.get('properties'))
+        parse("__overview", d)
+        parse("__properties", d.get('properties'))
         
         _id = d.get('properties').get('_id')
         customDimensions = d.get('properties').get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties').get('customDimensions')
@@ -49,8 +48,8 @@ def parseJson(filelist:list) -> dict:
         timestamp = d.get('properties').get('timestamp')
         web = d.get('properties').get('web')
         
-        print("\n_id")
-        print(_id)
+        #parse("_id", _id.get('_id'))
+        #parseObject("_id", _id)        
         
         parse("customDimensions", customDimensions.get('properties'))
         parseObject("customDimensions", customDimensions)        
@@ -86,13 +85,82 @@ def parseJson(filelist:list) -> dict:
         parseObject("timestamp", timestamp)        
 
 
+def createAdoc():
+    filepath = f"{dir_schema}/index.adoc"
+    directory = os.path.dirname(filepath)
+    filelist = class_files.Files({}).listDirectory(directory)
+    filesort = sortByName(filelist)
+    c = [(lambda x: adocCodeBlock(x))(x) for x in filesort if not re.search("index.adoc", x) ] if isinstance(filesort, list) and len(filesort) > 0 else None     
+    if isinstance(c, list) and len(c) > 0:
+        s = []
+        s.append("= Schema\n:doctype: book\n:experimental:\n:toc: left\n:source-highlighter: rouge\n:sectnums:\n")
+        s.append("\n\n".join(c))
+        os.remove(filepath) if os.path.exists(filepath) else None
+        class_files.Files({}).writeFile({"file":filepath, "content":"\n".join(s)})
+
+def adocCodeBlock(filepath:str):
+    p = class_files.Files({}).fileProperties(filepath)
+    plist = p.get('path').split("/")
+    ext = re.sub('\.', '', p.get('file_extension'))
+    s = []
+    s.append(f"== {p.get('name')}\n") if re.search("\_", filepath) else s.append(f"=== {p.get('name')}\n")
+    if ext != "adoc":
+        s.append(f"[source%nowrap,{ext}]")
+        s.append("----")
+        s.append(f"include::{plist[-1]}/{p.get('name')}{p.get('file_extension')}[]")
+        s.append("----\n")
+    else:
+        s.append(f"include::{plist[-1]}/{p.get('name')}{p.get('file_extension')}[]")
+        
+    return "\n".join(s)
+
+def sortByName(filelist:list) -> list:
+    if isinstance(filelist, list) and len(filelist) > 0:
+        filelist.sort()
+        sorted(set(filelist), key=filelist.index)
+        return filelist
+
 def checkKey(d:dict, k:str):
     return k if k in d else False
 
+def parsex(name, d:dict):
+    s = []
+    s.append("[cols=\"1,1,1,1\"]")
+    s.append("|===")
+    s.append("|name | type | title | description")
+    for (k, v) in d.items():
+        s.append(f"|{k}")
+        s.append(f"|{v.get('type')}") if isinstance(v, dict) and isinstance(v.get('type'), str) else "|"
+        s.append(f"|{v.get('title')}") if isinstance(v, dict) and isinstance(v.get('title'), str) else "|"
+        s.append(f"|{v.get('description')}\n") if isinstance(v, dict) and isinstance(v.get('description'), str) else "|"
+    s.append("|===")
+    c = "\n".join(s)
+    
+    """
+    s = []
+    for (k, v) in d.items():
+        s.append(f"title: {v.get('title')}\n") if isinstance(v, dict) and isinstance(v.get('title'), str) else None
+        s.append(f"description: {v.get('description')}\n") if isinstance(v, dict) and isinstance(v.get('description'), str) else None
+        s.append(f"type: {v.get('type')}\n") if isinstance(v, dict) and isinstance(v.get('type'), str) else None
+        s.append(f"{k}\t{v}") if not isinstance(v, dict) else s.append(f"{k}\t{str(type(v))}")
+    c = "\n".join(s)
+    """
+    
+    filepath = f"{dir_schema}/{name}/_{name}.adoc"
+    directory = os.path.dirname(filepath)
+    makeDirectory(directory)
+    #os.remove(filepath) if os.path.exists(filepath) else None
+    class_files.Files({}).writeFile({"file":filepath, "content":c}) if not os.path.exists(filepath) else None
+
 def parse(name, d:dict):
-    print(name)
-    #{print(f"{k}\t{v}") if not isinstance(v, dict) else print(f"\033[1;33m{k}\t{str(type(v))}\033[0m") for (k, v) in d.items()} 
-    {print(f"{k}\t{v}") if not isinstance(v, dict) else print(f"{k}\t{str(type(v))}") for (k, v) in d.items()} 
+    {print(f"{k}\t{v}") if not isinstance(v, dict) else print(f"\033[1;33m{k}\t{str(type(v))}\033[0m") for (k, v) in d.items()} 
+    l = [f"{k}\t{v}" if not isinstance(v, dict) else f"{k}\t{str(type(v))}" for (k, v) in d.items()]
+    s = "\n".join(l)
+    filepath = f"{dir_schema}/{name}/_{name}.txt"
+    directory = os.path.dirname(filepath)
+    makeDirectory(directory)
+    #os.remove(filepath) if os.path.exists(filepath) else None
+    class_files.Files({}).writeFile({"file":filepath, "content":s}) if not os.path.exists(filepath) else None
 
 def propertiesToList(filepath:str, d:dict):
     if isinstance(d, dict) and d.get('properties'):
