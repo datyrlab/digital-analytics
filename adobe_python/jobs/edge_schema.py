@@ -14,6 +14,7 @@ from adobe_python.jobs import ims_client, oauth
 timestamp_numeric = int(time.time() * 1000.0)
 dir_admin = f"{project_dir}/myfolder/adobe-admin"
 dir_schema = f"{project_dir}/myfolder/schema"
+dir_schema_md = f"{project_dir}/myfolder/schema-markdown"
 
 def main():
     imp = parseArgs(sys.argv)
@@ -32,58 +33,118 @@ def parseArgs(argv) -> tuple:
 def parseJson(filelist:list) -> dict:
     if isinstance(filelist, list) and len(filelist) > 0:
         d = class_files.Files({}).readJson(f"{project_dir}/{filelist[0]}")
-        parse("__overview", d)
-        parse("__properties", d.get('properties'))
+        parseTableTwoColumns("Overview", d)
+        parseTableTwoColumns("Properties", d.get('properties'))
         
         _id = d.get('properties').get('_id')
         customDimensions = d.get('properties').get('_experience',{}).get('properties',{}).get('analytics',{}).get('properties').get('customDimensions')
+        advertising = d.get('properties').get('advertising')
         application = d.get('properties').get('application')
         channel = d.get('properties').get('channel')
         commerce = d.get('properties').get('commerce')
+        dataSource = d.get('properties').get('dataSource')
+        device = d.get('properties').get('device')
+        directMarketing = d.get('properties').get('directMarketing')
+        endUserIDs = d.get('properties').get('endUserIDs')
         environment = d.get('properties').get('environment')
+        eventMergeId = d.get('properties').get('eventMergeId')
         eventType = d.get('properties').get('eventType')
         identityMap = d.get('properties').get('identityMap').get('additionalProperties').get('items')
+        marketing = d.get('properties').get('marketing')
+        media = d.get('properties').get('media')
+        placeContext = d.get('properties').get('placeContext')
+        producedBy = d.get('properties').get('producedBy')
+        productListItems = d.get('properties').get('productListItems')
         profileStitch = d.get('properties').get('profileStitch').get('items')
         receivedTimestamp = d.get('properties').get('receivedTimestamp')
+        search = d.get('properties').get('search')
+        segmentMembership = d.get('properties').get('segmentMembership')
+        segmentMemberships = d.get('properties').get('segmentMemberships')
         timestamp = d.get('properties').get('timestamp')
+        userActivityRegion = d.get('properties').get('userActivityRegion')
         web = d.get('properties').get('web')
+       
+        #parseTable("_id", _id)
+        parseObject("_id", _id)        
         
-        #parse("_id", _id.get('_id'))
-        #parseObject("_id", _id)        
-        
-        parse("customDimensions", customDimensions.get('properties'))
+        parseTable("customDimensions", customDimensions.get('properties'))
         parseObject("customDimensions", customDimensions)        
         
-        parse("web", web.get('properties'))
-        parseObject("web", web)        
+        parseTable("advertising", advertising.get('properties'))
+        parseObject("advertising", advertising)        
         
-        parse("application", application.get('properties'))
+        parseTable("application", application.get('properties'))
         parseObject("application", application)        
         
-        parse("channel", channel.get('properties'))
+        parseTable("channel", channel.get('properties'))
         parseObject("channel", channel)        
 
-        parse("commerce", commerce.get('properties'))
+        parseTable("commerce", commerce.get('properties'))
         parseObject("commerce", commerce)        
 
-        parse("environment", environment.get('properties'))
-        parseObject("environment", environment)        
+        parseTable("dataSource", dataSource.get('properties'))
+        parseObject("dataSource", dataSource)        
 
-        parse("eventType", eventType)
+        parseTable("device", device.get('properties'))
+        parseObject("device", device)        
+
+        parseTable("directMarketing", directMarketing.get('properties'))
+        parseObject("directMarketing", directMarketing)        
+
+        parseTable("endUserIDs", endUserIDs.get('properties'))
+        parseObject("endUserIDs", endUserIDs)        
+
+        parseTable("environment", environment.get('properties'))
+        parseObject("environment", environment)        
+        
+        parseTable("eventMergeId", eventMergeId)
+        parseObject("eventMergeId", eventMergeId)        
+        
+        parseTable("eventType", eventType)
         parseObject("eventType", eventType)        
 
-        parse("identityMap", identityMap.get('properties'))
+        parseTable("identityMap", identityMap.get('properties'))
         parseObject("identityMap", identityMap)        
 
-        parse("profileStitch", profileStitch.get('properties'))
+        parseTable("marketing", marketing.get('properties'))
+        parseObject("marketing", marketing)        
+
+        parseTable("media", media.get('properties'))
+        parseObject("media", media)        
+
+        #parseTable("placeContext", placeContext.get('properties'))
+        #parseObject("placeContext", placeContext)        
+
+        #parseTable("producedBy", producedBy.get('properties'))
+        #parseObject("producedBy", producedBy)        
+
+        #parseTable("productListItems", productListItems.get('properties'))
+        #parseObject("productListItems", productListItems)        
+
+        parseTable("profileStitch", profileStitch.get('properties'))
         parseObject("profileStitch", profileStitch)        
 
-        parse("receivedTimestamp", receivedTimestamp)
+        parseTable("receivedTimestamp", receivedTimestamp)
         parseObject("receivedTimestamp", receivedTimestamp)        
+        
+        parseTable("search", search.get('properties'))
+        parseObject("search", search)        
 
-        parse("timestamp", timestamp)
+        #parseTable("segmentMembership", segmentMembership.get('properties'))
+        #parseObject("segmentMembership", segmentMembership)        
+
+        #parseTable("segmentMemberships", segmentMemberships.get('properties'))
+        #parseObject("segmentMemberships", segmentMemberships)        
+
+        parseTable("timestamp", timestamp)
         parseObject("timestamp", timestamp)        
 
+        parseTable("userActivityRegion", userActivityRegion.get('properties'))
+        parseObject("userActivityRegion", userActivityRegion)        
+
+        parseTable("web", web.get('properties'))
+        parseObject("web", web)        
+        
 
 def createAdoc():
     filepath = f"{dir_schema}/index.adoc"
@@ -99,19 +160,21 @@ def createAdoc():
         class_files.Files({}).writeFile({"file":filepath, "content":"\n".join(s)})
 
 def adocCodeBlock(filepath:str):
+    def letterCase(name:str):
+        return name.lower() if name.isupper() == True else name # force all lower if all caps
+
     p = class_files.Files({}).fileProperties(filepath)
     plist = p.get('path').split("/")
     ext = re.sub('\.', '', p.get('file_extension'))
+    name = letterCase(p.get('name'))
     s = []
-    s.append(f"== {p.get('name')}\n") if re.search("\_", filepath) else s.append(f"=== {p.get('name')}\n")
+    s.append(f"== {name}\n") if name[0].isupper() else s.append(f"=== {name}\n")
     if ext != "adoc":
         s.append(f"[source%nowrap,{ext}]")
         s.append("----")
-        #s.append(f"include::{plist[-1]}/{p.get('name')}{p.get('file_extension')}[]")
         s.append(f"include::{filepath}[]")
         s.append("----\n")
     else:
-        #s.append(f"include::{plist[-1]}/{p.get('name')}{p.get('file_extension')}[]")
         s.append(f"include::{filepath}[]")
         
     return "\n".join(s)
@@ -125,44 +188,39 @@ def sortByName(filelist:list) -> list:
 def checkKey(d:dict, k:str):
     return k if k in d else False
 
-def parsex(name, d:dict):
+def convertType(v):
+    if isinstance(v, dict):
+        return "object"
+    if isinstance(v, list):
+        return json.dumps(v)
+    return str(v)
+
+def parseTableTwoColumns(name:str, d:dict):
+    s = []
+    s.append("[cols=\"1,1\"]")
+    s.append("|===")
+    s.append("|Name|Type\n")
+    {s.append(f"|{k}\n|{convertType(v)}\n") for (k, v) in d.items()}
+    s.append("|===")
+    c = "\n".join(s)
+    filepath = f"{dir_schema}/{name}/{name.capitalize()}.adoc"
+    writeFile(filepath, c)
+
+def parseTable(name:str, d:dict):
     s = []
     s.append("[cols=\"1,1,1,1\"]")
     s.append("|===")
-    s.append("|name | type | title | description")
-    for (k, v) in d.items():
-        s.append(f"|{k}")
-        s.append(f"|{v.get('type')}") if isinstance(v, dict) and isinstance(v.get('type'), str) else "|"
-        s.append(f"|{v.get('title')}") if isinstance(v, dict) and isinstance(v.get('title'), str) else "|"
-        s.append(f"|{v.get('description')}\n") if isinstance(v, dict) and isinstance(v.get('description'), str) else "|"
+    s.append("|Name|Type|Title|Description\n")
+    try:
+        {s.append(f"|{k}\n|{v.get('type')}\n|{v.get('title')}\n|{v.get('description')}\n") for (k, v) in d.items()}
+    except:
+        pass
+    finally:
+        s.append(f"|{name}\n|{d.get('type')}\n|{d.get('title')}\n|{d.get('description')}\n")
     s.append("|===")
     c = "\n".join(s)
-    
-    """
-    s = []
-    for (k, v) in d.items():
-        s.append(f"title: {v.get('title')}\n") if isinstance(v, dict) and isinstance(v.get('title'), str) else None
-        s.append(f"description: {v.get('description')}\n") if isinstance(v, dict) and isinstance(v.get('description'), str) else None
-        s.append(f"type: {v.get('type')}\n") if isinstance(v, dict) and isinstance(v.get('type'), str) else None
-        s.append(f"{k}\t{v}") if not isinstance(v, dict) else s.append(f"{k}\t{str(type(v))}")
-    c = "\n".join(s)
-    """
-    
-    filepath = f"{dir_schema}/{name}/_{name}.adoc"
-    directory = os.path.dirname(filepath)
-    makeDirectory(directory)
-    #os.remove(filepath) if os.path.exists(filepath) else None
-    class_files.Files({}).writeFile({"file":filepath, "content":c}) if not os.path.exists(filepath) else None
-
-def parse(name, d:dict):
-    {print(f"{k}\t{v}") if not isinstance(v, dict) else print(f"\033[1;33m{k}\t{str(type(v))}\033[0m") for (k, v) in d.items()} 
-    l = [f"{k}\t{v}" if not isinstance(v, dict) else f"{k}\t{str(type(v))}" for (k, v) in d.items()]
-    s = "\n".join(l)
-    filepath = f"{dir_schema}/{name}/_{name}.txt"
-    directory = os.path.dirname(filepath)
-    makeDirectory(directory)
-    #os.remove(filepath) if os.path.exists(filepath) else None
-    class_files.Files({}).writeFile({"file":filepath, "content":s}) if not os.path.exists(filepath) else None
+    filepath = f"{dir_schema}/{name}/{name.capitalize()}.adoc"
+    writeFile(filepath, c)
 
 def propertiesToList(filepath:str, d:dict):
     if isinstance(d, dict) and d.get('properties'):
@@ -175,7 +233,8 @@ def propertiesToList(filepath:str, d:dict):
 def writeFile(filepath, d:Any) -> None:
     directory = os.path.dirname(filepath) 
     makeDirectory(directory)
-    class_files.Files({}).writeFile({"file":filepath, "content":json.dumps(d, sort_keys=False, indent=4, default=str)}) if not os.path.exists(filepath) else None
+    c = json.dumps(d, sort_keys=False, indent=4, default=str) if re.search(".json$", filepath) else d
+    class_files.Files({}).writeFile({"file":filepath, "content":c}) if not os.path.exists(filepath) else None
  
 def parseObject(name:str, d:dict):
     if d.get('properties'):
