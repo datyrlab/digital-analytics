@@ -129,8 +129,8 @@ def makeRequest(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
     if isinstance(r, dict):
         print(f"\033[1;37;44mdata =====> {json.dumps(r.get('data'))}\033[0m") if not re.search("^Windows", platform.platform()) else print("data =====>", json.dumps(r.get('data')), "\n")
-        #run = class_subprocess.Subprocess({}).run(r.get('command'))
-        #parseResult(index, request, filepath, r, run)
+        run = class_subprocess.Subprocess({}).run(r.get('command'))
+        parseResult(index, request, filepath, r, run)
 
 def parseResult(index:int, request:dict, filepath:str, r:dict, run:Any) -> None:
     if re.search(".xml$", filepath) and re.search("SUCCESS", run):
