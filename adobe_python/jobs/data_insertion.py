@@ -48,15 +48,15 @@ def randomUniqueString() -> str:
     return uuid.uuid4().hex[:25].upper()
 
 def replaceString(t:dict, tsformat:str, hitid:str, r:dict, tsinteger:str, s:str) -> str:
-    profileid = [ x.get('id') for x in r.get('ProfileID') ]
-    customerid = [ x.get('id') for x in r.get('CustomerID') ]
+    profileid = [ x.get('id') for x in r.get('ProfileID') ][0] if isinstance(r.get('ProfileID'), list) else ""
+    customerid = [ x.get('id') for x in r.get('CustomerID') ][0] if isinstance(r.get('CustomerID'), list) else ""  
     replacelist = [
         ('timestamp><', f"timestamp>{tsinteger}<"),
         ('REPLACETESTCODE', testcode),
-        ('REPLACECUSTOMERID', customerid[0]),
+        ('REPLACECUSTOMERID', customerid),
         ('REPLACEORDERNUMBER', tsinteger),
         ('REPLACEORGID', t.get('orgid')),
-        ('REPLACEPROFILEID', profileid[0]),
+        ('REPLACEPROFILEID', profileid),
         ('REPLACEREFERENCE', hitid),
         ('REPLACETIMESTAMP', tsformat),
         ('REPLACETERMINALID', randomUniqueString())
@@ -70,15 +70,17 @@ def storedAdobeECID(filepath:str, r:dict, c:dict) -> dict:
     fpid = p[3] if re.search("^Windows", platform.platform()) else p[7]
     d = {} 
     d["FPID"] = [{"id":fpid, "authenticatedState": "ambiguous", "primary": True}]
-    d["ECID"] = [{"id":c.get('response',{}).get('id'),"primary": False}]
-    d["ProfileID"] = r.get('ProfileID')
+    if isinstance(c, dict):
+        d["ECID"] = [{"id":c.get('response',{}).get('id'),"primary": False}]
+    if isinstance(r.get('ProfileID'), list):
+        d["ProfileID"] = r.get('ProfileID')
     return d
 
 def getIdentityMap(r:dict) -> dict:
     if isinstance(r.get('identityMap'), dict):
         return r.get('identityMap')
     filepath = f"{project_dir}/{r.get('identityMap')}" if isinstance(r.get('identityMap'), str) and os.path.exists(f"{project_dir}/{r.get('identityMap')}") else f"{project_dir}/adobe_python/json/profilelist.json"
-    c = class_files.Files({}).readJson(filepath) if os.path.exists(filepath) else None
+    c = class_files.Files({}).readJson(filepath) if os.path.exists(filepath) and os.path.isfile(filepath) else filepath
     if re.search("device/", filepath):
         return storedAdobeECID(filepath, r, c)
     result = random.choice(c) if isinstance(c, list) and len(c) > 0 else {"identityMap":[{"Email_LC_SHA256": [{"id":"bfdb4e7af1447741addddba0f7c8ff34114be39926cb1e7e71b69b3b9c49821b", "primary": True}]}]}
@@ -129,8 +131,8 @@ def makeRequest(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
     if isinstance(r, dict):
         print(f"\033[1;37;44mdata =====> {json.dumps(r.get('data'))}\033[0m") if not re.search("^Windows", platform.platform()) else print("data =====>", json.dumps(r.get('data')), "\n")
-        run = class_subprocess.Subprocess({}).run(r.get('command'))
-        parseResult(index, request, filepath, r, run)
+        #run = class_subprocess.Subprocess({}).run(r.get('command'))
+        #parseResult(index, request, filepath, r, run)
 
 def parseResult(index:int, request:dict, filepath:str, r:dict, run:Any) -> None:
     if re.search(".xml$", filepath) and re.search("SUCCESS", run):
