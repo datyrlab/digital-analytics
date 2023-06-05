@@ -48,19 +48,23 @@ def randomUniqueString() -> str:
     return uuid.uuid4().hex[:25].upper()
 
 def replaceString(t:dict, tsformat:str, hitid:str, r:dict, tsinteger:str, s:str) -> str:
-    profileid = [ x.get('id') for x in r.get('ProfileID') ][0] if isinstance(r.get('ProfileID'), list) else ""
-    customerid = [ x.get('id') for x in r.get('CustomerID') ][0] if isinstance(r.get('CustomerID'), list) else ""  
+    profileid = [ x.get('id') for x in r.get('ProfileID') ][0] if isinstance(r.get('ProfileID'), list) else None
+    customerid = [ x.get('id') for x in r.get('CustomerID') ][0] if isinstance(r.get('CustomerID'), list) else None  
+    if not profileid:
+        s = re.sub('"profileid":"REPLACEPROFILEID",', "", s)
+    if not customerid:
+        s = re.sub('"customerid":"REPLACECUSTOMERID",', "", s)
     replacelist = [
         ('timestamp><', f"timestamp>{tsinteger}<"),
         ('REPLACETESTCODE', testcode),
-        ('REPLACECUSTOMERID', customerid),
         ('REPLACEORDERNUMBER', tsinteger),
         ('REPLACEORGID', t.get('orgid')),
-        ('REPLACEPROFILEID', profileid),
         ('REPLACEREFERENCE', hitid),
         ('REPLACETIMESTAMP', tsformat),
         ('REPLACETERMINALID', randomUniqueString())
     ]
+    replacelist.append(('REPLACEPROFILEID', profileid)) if profileid else None
+    replacelist.append(('REPLACECUSTOMERID', customerid)) if customerid else None
     for find, replace in replacelist:
         s = re.sub(find, replace, s)
     return s
@@ -131,8 +135,8 @@ def makeRequest(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
     if isinstance(r, dict):
         print(f"\033[1;37;44mdata =====> {json.dumps(r.get('data'))}\033[0m") if not re.search("^Windows", platform.platform()) else print("data =====>", json.dumps(r.get('data')), "\n")
-        #run = class_subprocess.Subprocess({}).run(r.get('command'))
-        #parseResult(index, request, filepath, r, run)
+        run = class_subprocess.Subprocess({}).run(r.get('command'))
+        parseResult(index, request, filepath, r, run)
 
 def parseResult(index:int, request:dict, filepath:str, r:dict, run:Any) -> None:
     if re.search(".xml$", filepath) and re.search("SUCCESS", run):
