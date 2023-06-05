@@ -14,7 +14,7 @@ timestamp_numeric = int(time.time() * 1000.0)
 dir_tmp = f"{project_dir}/myfolder/adobe-events-sent/tmp"
 dir_log = f"{project_dir}/myfolder/adobe-events-sent/logs"
 dir_response = f"{project_dir}/myfolder/adobe-events-sent/response"
-testcode = "beta"
+testcode = "betaone"
 
 def main():
     request = parseArgs(sys.argv)
@@ -31,7 +31,7 @@ def parseArgs(argv) -> tuple:
 
 def parseRequest(r:dict) -> None:
     if isinstance(r, dict) and isinstance(r.get('eventlist'), list) and len(r.get('eventlist')) > 0:
-        [(lambda x: sendCommand(i, r, f"{project_dir}/{x}"))(x) for i, x in enumerate(r.get('eventlist'))]
+        [(lambda x: makeRequest(i, r, f"{project_dir}/{x}"))(x) for i, x in enumerate(r.get('eventlist'))]
         
 def getTimestamp() -> int:
     date_time = datetime.datetime.now()
@@ -47,11 +47,19 @@ def randomUniqueString() -> str:
     import uuid
     return uuid.uuid4().hex[:25].upper()
 
-def replaceString(s:str, tsinteger:str) -> str:
+def replaceString(t:dict, tsformat:str, hitid:str, r:dict, tsinteger:str, s:str) -> str:
+    profileid = [ x.get('id') for x in r.get('ProfileID') ]
+    customerid = [ x.get('id') for x in r.get('CustomerID') ]
     replacelist = [
         ('timestamp><', f"timestamp>{tsinteger}<"),
         ('REPLACETESTCODE', testcode),
-        ('REPLACEORDERNUMBER', tsinteger)
+        ('REPLACECUSTOMERID', customerid[0]),
+        ('REPLACEORDERNUMBER', tsinteger),
+        ('REPLACEORGID', t.get('orgid')),
+        ('REPLACEPROFILEID', profileid[0]),
+        ('REPLACEREFERENCE', hitid),
+        ('REPLACETIMESTAMP', tsformat),
+        ('REPLACETERMINALID', randomUniqueString())
     ]
     for find, replace in replacelist:
         s = re.sub(find, replace, s)
@@ -62,7 +70,7 @@ def storedAdobeECID(filepath:str, r:dict, c:dict) -> dict:
     fpid = p[3] if re.search("^Windows", platform.platform()) else p[7]
     d = {} 
     d["FPID"] = [{"id":fpid, "authenticatedState": "ambiguous", "primary": True}]
-    d["ECID"] = [{"id":c.get('response',{}).get('id'),"primary": True}]
+    d["ECID"] = [{"id":c.get('response',{}).get('id'),"primary": False}]
     d["ProfileID"] = r.get('ProfileID')
     return d
 
@@ -77,30 +85,27 @@ def getIdentityMap(r:dict) -> dict:
     return result.get('identityMap')
 
 def getCommand(r:dict, filepath:str) -> dict:
+    t = oauth.getAccessToken()
+    tsformat = getTimestampFormat()
+    hitid = randomUniqueString()
     url = r.get('url')
     streamid = r.get('streamid')
     tsinteger = getTimestamp()
     c = class_files.Files({}).readFile(filepath)
-    cstr = replaceString("".join(c), str(tsinteger)) if isinstance(c, list) and len(c) > 0 else None
+    cstr = replaceString(t, tsformat, hitid, r, str(tsinteger), "".join(c)) if isinstance(c, list) and len(c) > 0 else None
     
     if re.search(".xml$", filepath):
         return {"data":cstr, "time":tsinteger, "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{cstr}\""}
     
     elif re.search(".json$", filepath):
-        tsformat = getTimestampFormat()
-        t = oauth.getAccessToken()
         data = json.loads(cstr) if isinstance(cstr, str) else None
         if isinstance(data, dict) and isinstance(data.get('event',{}).get('xdm'), dict):
             identitymap = getIdentityMap(r)
             profileid = [(lambda x: x)(x) for x in identitymap.get('ProfileID') if x.get('id')][0].get('id') if isinstance(identitymap.get('ProfileID'), list) else None
-            data["event"]["xdm"]["_id"] = randomUniqueString()
+            data["event"]["xdm"]["_id"] = hitid
             data["event"]["xdm"]["timestamp"] = tsformat
             if not isinstance(data.get('event',{}).get('xdm',{}).get('identityMap'), dict):
                 data["event"]["xdm"]["identityMap"] = identitymap
-            if not isinstance(data.get('event',{}).get('xdm',{}).get('cea'), dict):
-                data["event"]["xdm"]["cea"] = {"profileid":profileid}
-            else: 
-                data["event"]["xdm"]["cea"]["profileid"] = profileid
         
         s = []
         s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
@@ -120,29 +125,32 @@ def useFile(data:dict) -> str:
     class_files.Files({}).writeFile({"file":filepath, "content":json.dumps(data, sort_keys=False, default=str)})
     return filepath
 
-def sendCommand(index:int, request:dict, filepath:str) -> None:
+def makeRequest(index:int, request:dict, filepath:str) -> None:
     r = getCommand(request, filepath)
     if isinstance(r, dict):
-        print("data =====>", json.dumps(r.get('data')), "\n")
-        run = class_subprocess.Subprocess({}).run(r.get('command'))
-        if re.search(".xml$", filepath) and re.search("SUCCESS", run):
+        print(f"\033[1;37;44mdata =====> {json.dumps(r.get('data'))}\033[0m") if not re.search("^Windows", platform.platform()) else print("data =====>", json.dumps(r.get('data')), "\n")
+        #run = class_subprocess.Subprocess({}).run(r.get('command'))
+        #parseResult(index, request, filepath, r, run)
+
+def parseResult(index:int, request:dict, filepath:str, r:dict, run:Any) -> None:
+    if re.search(".xml$", filepath) and re.search("SUCCESS", run):
+        directory_log = f"{dir_log}/{r.get('date')}"
+        makeDirectory(directory_log)
+        class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}.xml", "content":r.get('data')})  
+    elif re.search(".json$", filepath):
+        try:
+            directory_response = f"{dir_response}/{r.get('date')}"
             directory_log = f"{dir_log}/{r.get('date')}"
+            makeDirectory(directory_response)
             makeDirectory(directory_log)
-            class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}.xml", "content":r.get('data')})  
-        elif re.search(".json$", filepath):
-            try:
-                directory_response = f"{dir_response}/{r.get('date')}"
-                directory_log = f"{dir_log}/{r.get('date')}"
-                makeDirectory(directory_response)
-                makeDirectory(directory_log)
-                response = json.loads("{\""+ run +"}") if re.search("^requestId", run) else run
-                class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{r.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)}) if re.search("^requestId", run) else None 
-                class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-log.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, default=str)})  
-                class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-format.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
-                print("requestId:", response.get('requestId')) if isinstance(response, dict) else print("error:", run)
-                time.sleep(random.randint(2, 8)) if len(request.get('eventlist')) > 1 and request.get('delay') else None
-            except Exception as e:
-                print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
+            response = json.loads("{\""+ run +"}") if re.search("^requestId", run) else run
+            class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{r.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)}) if re.search("^requestId", run) else None 
+            class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-log.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, default=str)})  
+            class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-format.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
+            print("requestId:", response.get('requestId')) if isinstance(response, dict) else print("error:", run)
+            time.sleep(random.randint(2, 8)) if len(request.get('eventlist')) > 1 and request.get('delay') else None
+        except Exception as e:
+            print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):

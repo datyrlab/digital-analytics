@@ -111,9 +111,9 @@ def parseJson(filelist:list) -> dict:
 
         parseTable("media", media.get('properties'))
         parseObject("media", media)        
-
-        #parseTable("placeContext", placeContext.get('properties'))
-        #parseObject("placeContext", placeContext)        
+        
+        parseTable("placeContext", placeContext)
+        parseObject("placeContext", placeContext)        
 
         #parseTable("producedBy", producedBy.get('properties'))
         #parseObject("producedBy", producedBy)        
