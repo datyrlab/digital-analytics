@@ -13,7 +13,6 @@ from adobe_python.classes import class_converttime, class_files, class_subproces
 timestamp_numeric = int(time.time() * 1000.0)
 dir_device = f"{project_dir}/myfolder/device"
 
-
 def getTimestamp() -> int:
     date_time = datetime.datetime.now()
     if re.search("^Windows", platform.platform()):

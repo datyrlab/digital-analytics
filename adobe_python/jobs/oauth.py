@@ -11,7 +11,6 @@ from adobe_python.classes import class_converttime, class_files, class_subproces
 timestamp_numeric = int(time.time() * 1000.0)
 dir_oauth = f"{project_dir}/myfolder/adobe/oauth"
 
-
 def getAccessToken() -> dict:
     return getBearer(getEnv())
     
