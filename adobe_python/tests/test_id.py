@@ -11,6 +11,9 @@ from adobe_python.jobs import id_service
 dir_fpid = f"{project_dir}/myfolder/device/CB97A43915A948729C77CF6AC"
 
 class TestIDservice(unittest.TestCase):
+    
+    def test_randomUniqueString(self):
+        print(id_service.randomUniqueString())
 
     def test_fpidNew(self):
         id_service.fpidNew()

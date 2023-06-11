@@ -3,6 +3,7 @@
 import argparse, configparser, datetime, json, os, platform, re, sys, time
 from typing import Any, Callable, Dict, Optional, Union
 from pprint import pprint
+import uuid
 
 package_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 project_dir = os.path.dirname(package_dir)
@@ -20,8 +21,8 @@ def getTimestamp() -> int:
     return date_time.strftime('%s')
 
 def randomUniqueString() -> str:
-    import uuid
-    return uuid.uuid4().hex[:25].upper()
+    return uuid.uuid4()
+    #return uuid.uuid4().hex[:25].upper()
 
 def getEnvVars() -> dict:
     config_parser = configparser.ConfigParser()
@@ -53,11 +54,11 @@ def getCommand(ecid:int) -> str:
     command = " ".join(s)
     return {"timestamp":ts, "command":command} 
 
-def fpidNew() -> None:
+def fpidNew() -> dict:
     i = randomUniqueString()
-    dir_fpid = f"{dir_device}/{i}"
-    makeDirectory(dir_fpid)
-    ecidNew(dir_fpid)
+    directory = f"{dir_device}/{i}"
+    makeDirectory(directory)
+    return ecidNew({"directory":directory, "id":str(i)})
 
 def fpidGet(dir_fpid:str) -> None:
     filelist = os.listdir(dir_fpid) if os.path.exists(dir_fpid) else None
@@ -65,7 +66,8 @@ def fpidGet(dir_fpid:str) -> None:
         paths = [os.path.join(dir_fpid, basename) for basename in filelist]
         return max(paths, key=os.path.getctime)
 
-def ecidNew(dir_fpid:str) -> None:
+def ecidNew(fpid:dict) -> dict:
+    print("hello", fpid)
     r = getCommand(None)
     run = class_subprocess.Subprocess({}).run(r.get('command'))
     try:
@@ -73,9 +75,11 @@ def ecidNew(dir_fpid:str) -> None:
         end_seconds = int(r.get('timestamp'))+int(response.get('id_sync_ttl'))
         request = {"command":r.get('command'), "timestamp":int(r.get('timestamp'))}
         response['timestamp'] = {"start":{"seconds":int(r.get('timestamp')), "string":datetime.datetime.fromtimestamp(int(r.get('timestamp'))).strftime("%A, %B %d, %Y %I:%M:%S")}, "end":{"seconds":end_seconds, "string":datetime.datetime.fromtimestamp(end_seconds).strftime("%A, %B %d, %Y %I:%M:%S")}}
-        #class_files.Files({}).writeFile({"file":f"{dir_fpid}/{response.get('id')}-{r.get('timestamp')}.json", "content":json.dumps({"request":request, "response":response}, sort_keys=False, default=str)})  
-        class_files.Files({}).writeFile({"file":f"{dir_fpid}/{response.get('id')}.json", "content":json.dumps({"request":request, "response":response}, sort_keys=False, default=str)})  
-        print("id:", response.get('id')) if isinstance(response, dict) else print("error:", run)
+        filepath = f"{fpid.get('directory')}/{response.get('id')}.json"
+        c = {"fpid":fpid, "ecid":response}
+        class_files.Files({}).writeFile({"file":filepath, "content":json.dumps(c, sort_keys=False, default=str)})  
+        print("ecid:", response.get('id')) if isinstance(response, dict) else print("error:", run)
+        return c
     except Exception as e:
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 

@@ -12,9 +12,9 @@ from adobe_python.classes import class_converttime, class_files, class_subproces
 from adobe_python.jobs import ims_client, oauth
 
 timestamp_numeric = int(time.time() * 1000.0)
-dir_admin = f"{project_dir}/myfolder/adobe-admin"
-dir_schema = f"{project_dir}/myfolder/schema"
-dir_schema_md = f"{project_dir}/myfolder/schema-markdown"
+dir_admin = f"{project_dir}/myfolder/adobe/platform"
+dir_schema = f"{project_dir}/myfolder/adobe/platform-parsed-schema"
+dir_schema_md = f"{project_dir}/myfolder/adobe/platform-parsed-schemamd"
 
 def main():
     imp = parseArgs(sys.argv)

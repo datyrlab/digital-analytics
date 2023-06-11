@@ -9,7 +9,7 @@ sys.path.insert(0, project_dir)
 from adobe_python.classes import class_converttime, class_files, class_subprocess
 
 timestamp_numeric = int(time.time() * 1000.0)
-dir_oauth = f"{project_dir}/myfolder/adobe-oauth"
+dir_oauth = f"{project_dir}/myfolder/adobe/oauth"
 
 
 def getAccessToken() -> dict:
