@@ -67,7 +67,6 @@ def fpidGet(dir_fpid:str) -> None:
         return max(paths, key=os.path.getctime)
 
 def ecidNew(fpid:dict) -> dict:
-    print("hello", fpid)
     r = getCommand(None)
     run = class_subprocess.Subprocess({}).run(r.get('command'))
     try:
