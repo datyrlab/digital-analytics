@@ -60,10 +60,10 @@ def fpidNew() -> dict:
     makeDirectory(directory)
     return ecidNew({"directory":directory, "id":str(i)})
 
-def fpidGet(dir_fpid:str) -> None:
-    filelist = os.listdir(dir_fpid) if os.path.exists(dir_fpid) else None
+def fpidGet(directory:str) -> None:
+    filelist = os.listdir(directory) if os.path.exists(directory) else None
     if isinstance(filelist, list) and len(filelist) > 0:
-        paths = [os.path.join(dir_fpid, basename) for basename in filelist]
+        paths = [os.path.join(directory, basename) for basename in filelist]
         return max(paths, key=os.path.getctime)
 
 def ecidNew(fpid:dict) -> dict:
