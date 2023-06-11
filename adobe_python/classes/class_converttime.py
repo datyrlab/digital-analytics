@@ -16,7 +16,6 @@ class Converttime:
         self.config = config
         self.timestamp_numeric = int(time.time() * 1000.0)
     
-    # tag::convert_time[]
     def convert_time(self, kwargs:dict) -> dict:
         def timestampToSeconds(timestring:str) -> dict:
             h,m,s = timestring.split(':')
@@ -36,6 +35,4 @@ class Converttime:
 
         TIMESTRING = str(kwargs.get('timestring'))
         return timestampToSeconds(TIMESTRING) if re.findall("([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3})", TIMESTRING, re.DOTALL) else secondsToTimestamp(TIMESTRING)
-
-    # end::convert_time[]
 

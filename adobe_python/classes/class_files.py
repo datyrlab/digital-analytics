@@ -11,7 +11,6 @@ class Files:
     def __init__(self,config):
         self.config = config
 
-    # tag::fileOrDirectory[]
     def fileOrDirectory(self, datapath:str) -> str:
         """ check if path is a directory or file """
         if isinstance(datapath, str) and os.path.exists(datapath):
@@ -20,10 +19,6 @@ class Files:
             elif os.path.isfile(datapath):
                 return "file"
     
-    # end::fileOrDirectory[]
-
-
-    # tag::list_directory[]
     def listDirectory(self, directory:str, pattern:Optional[str]=None) -> list:
         """ recursive list files in a directory  """
         def recursiveFilelist(directory):
@@ -41,10 +36,6 @@ class Files:
         filelist = recursiveFilelist(directory)
         return filelist if pattern == None else filterFiles(filelist, pattern) if pattern != "" else None
     
-    # end::list_directory[]
-
-
-    # tag::readFile[]
     def readFile(self, filepath:str) -> list:
         """ opens and reads a files, returns the content """
         if os.path.exists(filepath):
@@ -53,10 +44,6 @@ class Files:
             f.close()
             return filelist
 
-    # end::readFile[]
-    
-
-    # tag::readJson[]
     def readJson(self, filepath:str) -> dict:
         """ opens a file """
         if isinstance(filepath, str) and os.path.exists(filepath):
@@ -67,10 +54,6 @@ class Files:
                 return data
             return openJson(filepath)
     
-    # end::readJson[]
-
-
-    # tag::writeFile[]
     def writeFile(self, kwargs:dict) -> None:
         """ writes content to a file, will open a new empty file if content is 'None' """
         def createEmptyFile(filepath:str, content:Any) -> None:
@@ -87,10 +70,6 @@ class Files:
             
         fileLogic(kwargs.get('file'), kwargs.get('content'))
     
-    # end::writeFile[]
-
-
-    # tag::fileProperties[]
     def fileProperties(self, filepath:str) -> dict:
         def getProperties(filepath:str) -> dict:
             today = datetime.datetime.today()
@@ -157,19 +136,9 @@ class Files:
         stats = getStats(properties)
         return getImage(stats)
 
-    # end::fileProperties[]
-
-
-    # tag::createFile[]
     def createFile(self, filepath:str, content:str, directory:Optional[str]=None) -> None:    
         os.makedirs(directory) if isinstance(directory, str) and not os.path.exists(directory) else None
         os.remove(filepath) if os.path.exists(filepath) else None
         Files(self.config).writeFile({"file":filepath, "content":content})
     
-    # end::createFile[]
-
-
-
-
-
 
