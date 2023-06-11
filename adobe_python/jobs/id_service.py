@@ -60,7 +60,7 @@ def fpidNew() -> dict:
     makeDirectory(directory)
     return ecidNew({"directory":directory, "id":str(i)})
 
-def fpidGet(directory:str) -> None:
+def fpidGet(directory:str) -> str:
     filelist = os.listdir(directory) if os.path.exists(directory) else None
     if isinstance(filelist, list) and len(filelist) > 0:
         paths = [os.path.join(directory, basename) for basename in filelist]

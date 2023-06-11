@@ -35,7 +35,7 @@ def parseRequest(r:dict) -> None:
         t = oauth.getAccessToken()
         [(lambda x: makeRequest(i, t, r, f"{project_dir}/{x}"))(x) for i, x in enumerate(r.get('eventlist'))]
         
-def getTimestamp():
+def getTimestamp() -> dict:
     increment = 300 # spoof receivedTimestamp by x seconds
     now = datetime.datetime.now()
     date = now.strftime("%Y%m%d")
@@ -75,7 +75,7 @@ def replaceString(t:dict, ts:dict, hitid:str, identitymap:dict, s:str) -> str:
         s = re.sub(find, replace, s)
     return s
 
-def authState(r:dict):
+def authState(r:dict) -> str:
     profileid = [ x.get('id') for x in r.get('ProfileID') ][0] if isinstance(r.get('ProfileID'), list) else None
     customerid = [ x.get('id') for x in r.get('CustomerID') ][0] if isinstance(r.get('CustomerID'), list) else None  
     return "loggedOut" if not profileid and not customerid else "authenticated"
@@ -91,7 +91,7 @@ def idObj(ts:dict, r:dict, device:dict) -> dict:
         result["ProfileID"] = r.get('ProfileID')
     return result
 
-def getStoredECID(path:str):
+def getStoredECID(path:str) -> dict:
     if len(os.listdir(path)) > 0:
         filepath = max([os.path.join(path,d) for d in os.listdir(path)], key=os.path.getmtime)
         return class_files.Files({}).readJson(filepath)
@@ -105,7 +105,7 @@ def getIdentityMap(ts:dict, r:dict) -> dict:
     device = getStoredECID(path) if isinstance(path, str) and os.path.exists(path) and os.path.isdir(path) else id_service.fpidNew()
     return idObj(ts, r, device)
 
-def logout(d:dict):
+def logout(d:dict) -> dict:
     x = d.copy()
     if x.get('event',{}).get('xdm',{}).get('cea',{}).get('loginstatus') == "loggedout":
         del x['event']['xdm']['cea']['profileid']
