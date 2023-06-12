@@ -1,9 +1,0 @@
-<!-- https://mvnrepository.com/artifact/com.lihaoyi/os-lib -->
-<dependency>
-    <groupId>com.lihaoyi</groupId>
-    <artifactId>os-lib_3</artifactId>
-    <version>0.8.1</version>
-</dependency>
-
-
-
