@@ -14,7 +14,6 @@ class Subprocess:
         self.config = config
     
     def runGetDict(self, command:str) -> dict:
-        """ returns a dictionary """
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         stdout, stderr = p.communicate()
         return json.loads("{" + stdout.strip()[2:-1].decode("utf-8") + "}")

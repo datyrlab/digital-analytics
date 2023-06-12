@@ -1,0 +1,7 @@
+<!-- https://mvnrepository.com/artifact/io.delta/delta-core -->
+<dependency>
+    <groupId>io.delta</groupId>
+    <artifactId>delta-core_2.12</artifactId>
+    <version>1.0.0</version>
+</dependency>
+
