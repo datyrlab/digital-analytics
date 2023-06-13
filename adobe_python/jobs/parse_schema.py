@@ -27,8 +27,8 @@ def parseArgs(argv) -> tuple:
     namespace = parser.parse_known_args(argv)[0]
     
     args = {k: v for k, v in vars(namespace).items() if v is not None}
-    request = json.loads(args.get('import')) if isinstance(args.get('import'), str) else None
-    return request
+    imp = json.loads(args.get('import')) if isinstance(args.get('import'), str) else None
+    return imp
 
 def parseJson(filelist:list) -> dict:
     if isinstance(filelist, list) and len(filelist) > 0:
