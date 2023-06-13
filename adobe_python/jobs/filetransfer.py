@@ -52,8 +52,11 @@ def fileTransfer(sftp:paramiko.sftp_client.SFTPClient, conn:dict, transfer:dict)
 def download(sftp:paramiko.sftp_client.SFTPClient, directory:str, f):
     target = os.path.join(directory, f)
     sftp.get(f, target)
-    print(f"successfull download: {target}") if os.path.exists(target) else print(f"fail: {target}")
+    print(f"download success: {target}") if os.path.exists(target) else print(f"download fail: {target}")
     uncompressFile(target, directory)
+
+def removeFile(isftp:paramiko.sftp_client.SFTPClient, f) -> None:
+    sftp.remove(file)
 
 def uncompressFile(filepath, directory):
     if os.path.exists(filepath) and filepath.lower().endswith(('.zip')):
