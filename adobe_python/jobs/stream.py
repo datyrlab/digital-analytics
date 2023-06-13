@@ -63,6 +63,7 @@ def replaceString(t:dict, ts:dict, hitid:str, identitymap:dict, s:str) -> str:
         ('REPLACEREFERENCE', hitid),
         ('REPLACELOGINSTATUS', authenticatedstate),
         ('REPLACETERMINALID', randomUniqueString()),
+        ('REPLACERECEIVEDTIMESTAMP', ts.get('utc_iso_increment')),
         ('REPLACETIMESTAMP', ts.get('utc_iso')),
         ('timestamp><', f"timestamp>{ts.get('integer')}<")
     ]
