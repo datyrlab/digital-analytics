@@ -1,4 +1,5 @@
 cryptography
+pandas
 paramiko
 pyjwt
 requests
