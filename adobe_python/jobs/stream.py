@@ -15,6 +15,7 @@ timestamp_numeric = int(time.time() * 1000.0)
 dir_tmp = f"{project_dir}/myfolder/adobe/events-sent/tmp"
 dir_log = f"{project_dir}/myfolder/adobe/events-sent/logs"
 dir_response = f"{project_dir}/myfolder/adobe/events-sent/response"
+file_previous = f"{dir_tmp}/previous.json"
 testcode = None
 
 def main():
@@ -33,44 +34,67 @@ def parseArgs(argv) -> tuple:
 def parseRequest(r:dict) -> None:
     if isinstance(r, dict) and isinstance(r.get('eventlist'), list) and len(r.get('eventlist')) > 0:
         t = oauth.getAccessToken()
-        [(lambda x: makeRequest(i, t, r, f"{project_dir}/{x}"))(x) for i, x in enumerate(r.get('eventlist'))]
+        e = getEnvironment(r.get('environment'))
+        [(lambda x: makeRequest(i, r.get('eventlist'), t, e, r, f"{project_dir}/{x}"))(x) for i, x in enumerate(r.get('eventlist'))]
         
-def getTimestamp() -> dict:
-    increment = 300 # spoof receivedTimestamp by x seconds
-    now = datetime.datetime.now()
-    date = now.strftime("%Y%m%d")
-    f = now.timestamp()
-    utc_iso = datetime.datetime.utcfromtimestamp(f).isoformat()
-    utc_iso_increment = datetime.datetime.utcfromtimestamp(f+increment).isoformat()
-    return {"date":date, "float":f, "integer":str(int(f)), "utc_iso":f"{utc_iso[:-3]}Z", "utc_iso_increment":f"{utc_iso_increment[:-3]}Z"}
-
 def randomUniqueString() -> str:
     return uuid.uuid4().hex[:25].upper()
 
-def replaceString(t:dict, ts:dict, hitid:str, identitymap:dict, s:str) -> str:
+def getEnvironment(index:int) -> dict:
+    e = class_files.Files({}).readJson(f"{package_dir}/json/environmentlist.json") 
+    return e[index] if isinstance(index, int) else random.choice(e)
+
+def getPrevious(f):
+    c = class_files.Files({}).readJson(f"{project_dir}/{f}")
+    return {"pagename":c.get('event',{}).get('xdm',{}).get('web',{}).get('webPageDetails',{}).get('name'), "url":c.get('event',{}).get('xdm',{}).get('web',{}).get('webPageDetails',{}).get('URL')}
+        
+def parsePrevious(index:int, eventlist:list):
+    if index < 1:
+        pass
+    else:
+        f = eventlist[index-1]
+        r = getPrevious(f)
+        if r.get('pagename') == None:
+            parsePrevious(index-1, eventlist)
+        else:
+            makeDirectory(dir_tmp)
+            os.remove(file_previous) if os.path.exists(file_previous) else None
+            class_files.Files({}).writeFile({"file":file_previous, "content":json.dumps(r, sort_keys=False, default=str)})
+
+def replaceString(index:int, eventlist:list, t:dict, e:dict, r:dict, ts:dict, hitid:str, identitymap:dict, s:str) -> str:
     fpid = [ x.get('id') for x in identitymap.get('FPID') ][0] if isinstance(identitymap.get('FPID'), list) else None
     authenticatedstate = [ x.get('authenticatedState') for x in identitymap.get('FPID') ][0] if isinstance(identitymap.get('FPID'), list) else "ambiguous"
     ecid = [ x.get('id') for x in identitymap.get('ECID') ][0] if isinstance(identitymap.get('ECID'), list) else None
     customerid = [ x.get('id') for x in identitymap.get('CustomerID') ][0] if isinstance(identitymap.get('CustomerID'), list) else None  
     profileid = [ x.get('id') for x in identitymap.get('ProfileID') ][0] if isinstance(identitymap.get('ProfileID'), list) else None
+    parsePrevious(index, eventlist)
+    previous = class_files.Files({}).readJson(file_previous)
     if not customerid:
         s = re.sub('"customerid":"REPLACECUSTOMERID",', "", s)
     if not profileid:
         s = re.sub('"profileid":"REPLACEPROFILEID",', "", s)
+    
     replacelist = [
-        ('REPLACEORDERNUMBER', ts.get('integer')),
-        ('REPLACEORGID', t.get('orgid')),
+        ('replaceordernumber', str(ts.get('integer'))),
         ('REPLACEREFERENCE', hitid),
         ('REPLACELOGINSTATUS', authenticatedstate),
         ('REPLACETERMINALID', randomUniqueString()),
-        ('REPLACERECEIVEDTIMESTAMP', ts.get('utc_iso_increment')),
-        ('REPLACETIMESTAMP', ts.get('utc_iso')),
-        ('timestamp><', f"timestamp>{ts.get('integer')}<")
+        ('REPLACERECEIVEDTIMESTAMP', str(ts.get('ms_increment'))),
+        ('REPLACETIMESTAMP', str(ts.get('ms'))),
+        ('timestamp><', f"timestamp>{str(ts.get('integer'))}<")
     ]
+    replacelist.append(('"REPLACEENVIRONMENT"', json.dumps(e)))
     replacelist.append(('REPLACEECID', ecid)) if ecid else None
     replacelist.append(('REPLACECUSTOMERID', customerid)) if customerid else None
-    replacelist.append(('REPLACEPROFILEID', profileid)) if profileid else None
     replacelist.append(('REPLACEFPID', fpid)) if fpid else None
+    replacelist.append(('REPLACELANGUAGE', e.get('language')))
+    if isinstance(previous, dict):
+        replacelist.append(('REPLACEPREVIOUSPAGENAME', previous.get('pagename'))) if previous.get('pagename') else None
+        replacelist.append(('REPLACEPREVIOUSURL', previous.get('url'))) if previous.get('url') else None
+    replacelist.append(('REPLACEPROFILEID', profileid)) if profileid else None
+    replacelist.append(('REPLACEOPERATINGSYSTEM', e.get('operatingSystem')))
+    replacelist.append(('REPLACEOSVERSION', e.get('operatingSystemVersion')))
+    replacelist.append(('REPLACERESOLUTION', f"{e.get('device',{}).get('screenWidth')}x{e.get('device',{}).get('screenHeight')}"))
     replacelist.append(('REPLACETESTCODE', testcode)) if testcode else None
     for find, replace in replacelist:
         s = re.sub(find, replace, s)
@@ -90,6 +114,8 @@ def idObj(ts:dict, r:dict, device:dict) -> dict:
     result["ECID"] = [{"id":ecid,"primary": True}]
     if isinstance(r.get('ProfileID'), list):
         result["ProfileID"] = r.get('ProfileID')
+    if isinstance(r.get('CustomerID'), list):
+        result["CustomerID"] = r.get('CustomerID')
     return result
 
 def getStoredECID(path:str) -> dict:
@@ -109,22 +135,30 @@ def getIdentityMap(ts:dict, r:dict) -> dict:
 def logout(d:dict) -> dict:
     x = d.copy()
     if x.get('event',{}).get('xdm',{}).get('cea',{}).get('loginstatus') == "loggedout":
-        del x['event']['xdm']['cea']['profileid']
+        if x.get('event',{}).get('xdm',{}).get('identityMap',{}).get('FPID'):
+            fpid = [ x.get('id') for x in x.get('event',{}).get('xdm',{}).get('identityMap',{}).get('FPID') ][0]
+            x['event']['xdm']['identityMap']['FPID'] = [{"id":fpid, "authenticatedState":"loggedOut", "primary": True}]
+        if x.get('event',{}).get('xdm',{}).get('cea',{}).get('customerid'):
+            del x['event']['xdm']['cea']['customerid']
+        if x.get('event',{}).get('xdm',{}).get('cea',{}).get('profileid'):
+            del x['event']['xdm']['cea']['profileid']
         if x.get('event',{}).get('xdm',{}).get('identityMap',{}).get('ProfileID'):
             del x['event']['xdm']['identityMap']['ProfileID']
+    if x.get('event',{}).get('xdm',{}).get('identityMap',{}).get('CustomerID'):
+        del x['event']['xdm']['identityMap']['CustomerID']
     return x
 
-def getCommand(t:dict, r:dict, eventfile:str) -> dict:
-    ts = getTimestamp()
+def getCommand(index:int, eventlist:list, t:dict, e:dict, r:dict, eventfile:str) -> dict:
+    ts = class_converttime.Converttime({}).getTimestamp({"increment":300})
     hitid = randomUniqueString()
     url = r.get('url')
     streamid = r.get('streamid')
     identitymap = getIdentityMap(ts, r)
     eventcontent = class_files.Files({}).readFile(eventfile)
-    eventstr = replaceString(t, ts, hitid, identitymap, "".join(eventcontent)) if isinstance(eventcontent, list) and len(eventcontent) > 0 else None
+    eventstr = replaceString(index, eventlist, t, e, r, ts, hitid, identitymap, "".join(eventcontent)) if isinstance(eventcontent, list) and len(eventcontent) > 0 else None
     
     if re.search(".xml$", eventfile):
-        return {"data":eventstr, "time":ts.get('tsinteger'), "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{eventstr}\""}
+        return {"data":eventstr, "time":ts.get('integer'), "command":f"curl -X POST \"{url}\" -H \"Accept: application/xml\" -H \"Content-Type: application/xml\" -d \"{eventstr}\""}
     
     elif re.search(".json$", eventfile):
         d = json.loads(eventstr) if isinstance(eventstr, str) else None
@@ -154,9 +188,9 @@ def useFile(data:dict) -> str:
     class_files.Files({}).writeFile({"file":filepath, "content":json.dumps(data, sort_keys=False, default=str)})
     return filepath
 
-def makeRequest(index:int, t:dict, request:dict, eventfile:str) -> None:
+def makeRequest(index:int, eventlist:list, t:dict, e:dict, request:dict, eventfile:str) -> None:
     time.sleep(random.randint(3, 15)) if index > 0 else None
-    r = getCommand(t, request, eventfile)
+    r = getCommand(index, eventlist, t, e, request, eventfile)
     if isinstance(r, dict):
         print(f"\033[1;37;44mdata =====> {json.dumps(r.get('data'))}\033[0m") if not re.search("^Windows", platform.platform()) else print("data =====>", json.dumps(r.get('data')), "\n")
         run = class_subprocess.Subprocess({}).run(r.get('command'))

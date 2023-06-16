@@ -10,14 +10,7 @@ project_dir = os.path.dirname(package_dir)
 sys.path.insert(0, project_dir)
 from adobe_python.classes import class_converttime, class_files, class_subprocess
 
-timestamp_numeric = int(time.time() * 1000.0)
 dir_device = f"{project_dir}/myfolder/device"
-
-def getTimestamp() -> int:
-    date_time = datetime.datetime.now()
-    if re.search("^Windows", platform.platform()):
-        return int(date_time.timestamp())
-    return date_time.strftime('%s')
 
 def randomUniqueString() -> str:
     return uuid.uuid4()
@@ -31,7 +24,7 @@ def getEnvVars() -> dict:
 
 def getCommand(ecid:int) -> str:
     t = getEnvVars()
-    ts = getTimestamp()
+    ts = class_converttime.Converttime({}).getTimestamp({})
     u = []
     u.append(f"https://dpm.demdex.net/id")
     u.append(f"?d_visid_ver=2.5.0")
@@ -43,7 +36,7 @@ def getCommand(ecid:int) -> str:
     u.append(f"&d_orgid={t.get('orgid')}")
     if ecid:
         u.append(f"&ts={ecid}")
-    u.append(f"&ts={ts}")
+    u.append(f"&ts={ts.get('integer')}")
     url = "".join(u)
 
     s = []
@@ -51,7 +44,7 @@ def getCommand(ecid:int) -> str:
     s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
     s.append(f"-X GET {url}")
     command = " ".join(s)
-    return {"timestamp":ts, "command":command} 
+    return {"timestamp":ts.get('integer'), "command":command} 
 
 def fpidNew() -> dict:
     i = randomUniqueString()
