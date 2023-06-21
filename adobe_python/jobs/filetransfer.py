@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import argparse, datetime, json, os, pandas, platform, re, sys, time
-import paramiko, zipfile
+import paramiko, gzip, zipfile
 from typing import Any, Callable, Dict, Optional, Union
 from pprint import pprint
 
@@ -12,6 +12,7 @@ from adobe_python.classes import class_converttime, class_files, class_subproces
 from adobe_python.jobs import ims_client, oauth
 
 timestamp_numeric = int(time.time() * 1000.0)
+dir_log = f"{project_dir}/myfolder/adobe/log"
 
 def main():
     conn, transfer = parseArgs(sys.argv)
@@ -40,7 +41,7 @@ def getFilelist(sftp:paramiko.sftp_client.SFTPClient, directory:dict, pattern:di
     if isinstance(sftp, paramiko.sftp_client.SFTPClient):
         sftp.chdir(directory) if isinstance(directory, str) else None
         l = sftp.listdir() 
-        return [x.filename for x in sftp.listdir_attr() if re.search(pattern, x.filename)] if len(l) > 0 and pattern else l
+        return [x.filename for x in sftp.listdir_attr() if re.search(pattern, x.filename)] if len(l) > 0 and pattern else [x.filename for x in sftp.listdir_attr()]
 
 def fileTransfer(sftp:paramiko.sftp_client.SFTPClient, conn:dict, transfer:dict) -> None:
     directory = f"{project_dir}/{transfer.get('download')}" if isinstance(transfer.get('download'), str) else None
@@ -50,15 +51,27 @@ def fileTransfer(sftp:paramiko.sftp_client.SFTPClient, conn:dict, transfer:dict)
         [(lambda x: download(sftp, directory, x))(x) for x in filelist] if os.path.exists(directory) else None
 
 def download(sftp:paramiko.sftp_client.SFTPClient, directory:str, f):
+    properties = class_files.Files({}).fileProperties(f)
     target = os.path.join(directory, f)
-    sftp.get(f, target)
-    print(f"download success: {target}") if os.path.exists(target) else print(f"download fail: {target}")
-    uncompressFile(target, directory)
+    try:
+        sftp.get(f, target)
+        print(f"download success: {target}") if os.path.exists(target) else print(f"download fail: {target}")
+        funclist = [uncompressZip]
+        [f(target, directory) for f in funclist]
 
+    except FileNotFoundError as e:
+        print("File not found:", str(e))
+    except PermissionError as e:
+        print("Permission denied:", str(e))
+    except Exception as e:
+        print("Error occurred:", str(e))
+        makeDirectory(dir_log)
+        paramiko.util.log_to_file(f"{dir_log}/filetransfer-error.log", level=paramiko.util.DEBUG)
+    
 def removeFile(sftp:paramiko.sftp_client.SFTPClient, f) -> None:
-    sftp.remove(file)
+        sftp.remove(file)
 
-def uncompressFile(filepath, directory):
+def uncompressZip(filepath, directory):
     if os.path.exists(filepath) and filepath.lower().endswith(('.zip')):
         with zipfile.ZipFile(filepath) as zf:
             zf.extractall(directory)

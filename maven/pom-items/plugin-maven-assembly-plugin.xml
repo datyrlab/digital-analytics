@@ -9,7 +9,7 @@
         </descriptorRefs>
         <archive>
             <manifest>
-                <mainClass>com.aubuntu.App</mainClass>                
+                <mainClass>com.adobe.App</mainClass>                
             </manifest>
         </archive>
     </configuration>
