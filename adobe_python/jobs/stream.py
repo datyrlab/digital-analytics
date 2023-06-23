@@ -188,15 +188,15 @@ def userAuth(d:dict, g:dict, c:dict, i:dict) -> dict:
     auth = loginstatus if isinstance(loginstatus, str) and loginstatus == "loggedOut" else authenticatedState
     query = {"identity":{"fetch":["ECID"]}}
 
-    endUserIDs = { \
-        "_experience":{ \
-            "mcid":{ \
-                "namespace":{"code":"ECID"}, \
-                "id":ecid, \
-                "authenticatedState":auth, \
-                "primary":ecidprimary \
-            } \
-        } \
+    endUserIDs = {
+        "_experience":{
+            "mcid":{
+                "namespace":{"code":"ECID"},
+                "id":ecid,
+                "authenticatedState":auth,
+                "primary":ecidprimary
+            }
+        }
     }
     
     c.update({"fpid": fpid}) if isinstance(c, dict) and fpid else None
@@ -223,13 +223,13 @@ def userAuth(d:dict, g:dict, c:dict, i:dict) -> dict:
     c.update({"loginstate": authenticatedState}) if isinstance(c, dict) and authenticatedState else None
     
     experience = {
-        "analytics":{ \
-            "customDimensions":{ \
-                "eVars":{ \
-                    "eVar16":profileid \
-                } \
-            } \
-        } \
+        "analytics":{
+            "customDimensions":{ 
+                "eVars":{
+                    "eVar16":profileid
+                }
+            }
+        }
     }
     
     g.update({"cea":c})
