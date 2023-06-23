@@ -30,6 +30,10 @@ class TestIDservice(unittest.TestCase):
     def test_ecidRefresh(self):
         id_service.ecidRefresh()
 
+    def test_storeResponse(self):
+        c = class_files.Files({}).readJson(f"{project_dir}/myfolder/adobe/events-sent/response/20230622/0ae169dd-7ccc-49c8-90c2-6236eddcf3ae_1687460667.json")
+        
+
 if __name__ == '__main__':
     unittest.main()
 
