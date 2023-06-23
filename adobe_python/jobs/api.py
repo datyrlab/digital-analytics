@@ -99,7 +99,7 @@ def makeRequest(request:dict) -> None:
 def parseResult(request:dict, run:Any) -> None:
     try:
         tsinteger = getTimestamp()
-        path = re.sub("REPLACETIMESTAMP", tsinteger, f"{project_dir}/{request.get('save')}") if request.get('save') else f"{project_dir}/myfolder/adobe-admin/{str(tsinteger)}"
+        path = re.sub("REPLACETIMESTAMP", str(tsinteger), f"{project_dir}/{request.get('save')}") if request.get('save') else f"{project_dir}/myfolder/adobe-admin/{str(tsinteger)}"
         p = class_files.Files({}).fileProperties(path)
         path_log = f"{p.get('path')}/{p.get('name')}-log{p.get('file_extension')}" 
         path_format = f"{p.get('path')}/{p.get('name')}-format{p.get('file_extension')}" 
