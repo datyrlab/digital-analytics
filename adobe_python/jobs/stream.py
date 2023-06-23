@@ -95,10 +95,6 @@ def getEnvironment(d) -> dict:
     i = e[index] if isinstance(index, int) else random.choice(e)
     return  {"environment":i}
 
-def getResolution(e:dict) -> dict:
-    if isinstance(e.get('device'), dict):
-        return {"width":e.get('device',{}).get('screenWidth'), "height":e.get('device',{}).get('screenHeight'), "res":f"{e.get('device',{}).get('screenWidth')} x {e.get('device',{}).get('screenHeight')}"}
-
 def getWebReferrer(pageprevious:dict, webpagedetails:dict, webreferrer:dict) -> dict:
     if not isinstance(webpagedetails, dict):
         return None
@@ -145,9 +141,16 @@ def getIdentityMap(ts:dict, r:dict) -> dict:
     device = getStoredECID(path) if isinstance(path, str) and os.path.exists(path) and os.path.isdir(path) else id_service.fpidNew()
     return idObj(ts, r, device)
 
+def getResolution(e:dict) -> dict:
+    if isinstance(e.get('device'), dict):
+        return {"width":e.get('device',{}).get('screenWidth'), "height":e.get('device',{}).get('screenHeight'), "res":f"{e.get('device',{}).get('screenWidth')} x {e.get('device',{}).get('screenHeight')}"}
+
 def getContextData(d:dict, g:dict) -> dict:
     cd = d.get('eventcontent',{}).get('cea')
     c = cd if isinstance(cd, dict) else {}
+
+    resolution = getResolution(g.get('environment',{}))
+
     c.update({"cookielevel": "1"})
     c.update({"countrycode": "be"})
     c.update({"languagebrowserdevice": "en-BE"})
@@ -158,7 +161,7 @@ def getContextData(d:dict, g:dict) -> dict:
     c.update({"previouspagename": g.get('pageprevious').get('name')}) if isinstance(g.get('pageprevious'), dict) and g.get('pageprevious').get('name') else None
     c.update({"receivedtimestamp": str(d.get('timestamp',{}).get('ms_increment'))})
     c.update({"reference": g.get('hitid')})
-    c.update({"resolution": "en"})
+    c.update({"resolution": resolution.get('res')}) if isinstance(resolution, dict) and isinstance(resolution.get('res'), str) else None
     c.update({"timestamp": str(d.get('timestamp',{}).get('ms'))})
     
     if "device" in g.get('environment'): 
