@@ -12,6 +12,7 @@ from adobe_python.jobs import ims_client, oauth
 
 timestamp_numeric = int(time.time() * 1000.0)
 dir_admin = f"{project_dir}/myfolder/adobe"
+dir_tmp = f"{project_dir}/myfolder/adobe/events-sent/tmp"
 
 def main():
     request = parseArgs(sys.argv)
