@@ -12,10 +12,10 @@ from adobe_python.classes import class_converttime, class_files, class_subproces
 from adobe_python.jobs import id_service, oauth
 
 timestamp_numeric = int(time.time() * 1000.0)
-dir_tmp = f"{project_dir}/myfolder/adobe/events-sent/tmp"
-dir_log = f"{project_dir}/myfolder/adobe/events-sent/logs"
+dir_tmp = f"{project_dir}/myfolder/events-sent/tmp"
+dir_log = f"{project_dir}/myfolder/events-sent/logs"
 dir_json = f"{package_dir}/json"
-dir_response = f"{project_dir}/myfolder/adobe/events-sent/response"
+dir_response = f"{project_dir}/myfolder/events-sent/response"
 file_previous = f"{dir_tmp}/previous.json"
 dev = False
 
@@ -32,30 +32,38 @@ def parseArgs(argv) -> tuple:
     request = json.loads(args.get('request')) if isinstance(args.get('request'), str) else None
     return request
 
-def parseRequest(r:dict) -> None:
-    if isinstance(r, dict) and isinstance(r.get('eventlist'), list) and len(r.get('eventlist')) > 0:
-        t = {} if dev else oauth.getAccessToken()
-        [(lambda x: makeRequest(i, r.get('eventlist'), t, r, f"{project_dir}/{x}"))(x) for i, x in enumerate(r.get('eventlist'))]
-        
+def parseRequest(request:dict) -> None:
+    if isinstance(request, dict):
+        token = {} if dev else oauth.getAccessToken()
+        eventlist = getEventList(request.get('eventlist'))
+        [(lambda x: makeRequest(i, eventlist, token, request, f"{project_dir}/{x}"))(x) for i, x in enumerate(eventlist)] if isinstance(eventlist, list) and len(eventlist) > 0 else print("Event list is empty")
+
+def getEventList(eventlist:list) -> list:
+    if isinstance(eventlist, list):
+        return eventlist
+    filepath = f"{project_dir}/{eventlist}"
+    return class_files.Files({}).readFile(filepath) if os.path.exists(filepath) else None
+
 def randomUniqueString() -> str:
     return uuid.uuid4().hex[:25].upper()
 
-def authState(r:dict) -> str:
-    profileid = [ x.get('id') for x in r.get('ProfileID') ][0] if isinstance(r.get('ProfileID'), list) else None
-    customerid = [ x.get('id') for x in r.get('CustomerID') ][0] if isinstance(r.get('CustomerID'), list) else None  
+def authState(request:dict) -> str:
+    profileid = [ x.get('id') for x in request.get('ProfileID') ][0] if isinstance(request.get('ProfileID'), list) else None
+    customerid = [ x.get('id') for x in request.get('CustomerID') ][0] if isinstance(request.get('CustomerID'), list) else None  
     return "loggedOut" if not profileid and not customerid else "authenticated"
 
-def idObj(ts:dict, r:dict, device:dict) -> dict:
-    dev = device if int(ts.get('integer')) < device.get('ecid',{}).get('timestamp',{}).get('end',{}).get('seconds') else id_service.ecidNew(device.get('fpid'))
+def idObj(timestamp:dict, request:dict, device:dict) -> dict:
+    """ this function is custom to the implementation, builds the identityMap object to include specfic id keys """
+    dev = device if int(timestamp.get('integer')) < device.get('ecid',{}).get('timestamp',{}).get('end',{}).get('seconds') else id_service.ecidNew(device.get('fpid'))
     fpid = dev.get('fpid').get('id')
     ecid = dev.get('ecid').get('id')
     result = {} 
-    result["FPID"] = [{"id":fpid, "authenticatedState": authState(r), "primary": True}] 
+    result["FPID"] = [{"id":fpid, "authenticatedState": authState(request), "primary": True}] 
     result["ECID"] = [{"id":ecid,"primary": True}]
-    if isinstance(r.get('ProfileID'), list):
-        result["ProfileID"] = r.get('ProfileID')
-    if isinstance(r.get('CustomerID'), list):
-        result["CustomerID"] = r.get('CustomerID')
+    if isinstance(request.get('ProfileID'), list):
+        result["ProfileID"] = request.get('ProfileID')
+    if isinstance(request.get('CustomerID'), list):
+        result["CustomerID"] = request.get('CustomerID')
     return result
 
 def getStoredECID(path:str) -> dict:
@@ -65,32 +73,32 @@ def getStoredECID(path:str) -> dict:
     plist = path.split("/")
     return id_service.ecidNew({"directory":path, "id":plist[-1]})
 
-def getPrevious(f):
-    c = class_files.Files({}).readJson(f"{project_dir}/{f}")
+def getPrevious(filename:str) -> dict:
+    c = class_files.Files({}).readJson(f"{project_dir}/{filename}")
     return c.get('web',{}).get('webPageDetails')
         
-def parsePrevious(index:int, eventlist:list):
+def parsePrevious(index:int, eventlist:list) -> None:
     if index < 1:
         os.remove(file_previous) if os.path.exists(file_previous) else None
     else:
-        f = eventlist[index-1]
-        r = getPrevious(f)
-        if not r:
+        filepath = eventlist[index-1]
+        result = getPrevious(filepath)
+        if not result:
             parsePrevious(index-1, eventlist)
         else:
             makeDirectory(dir_tmp)
             os.remove(file_previous) if os.path.exists(file_previous) else None
-            class_files.Files({}).writeFile({"file":file_previous, "content":json.dumps(r, sort_keys=False, default=str)})
+            class_files.Files({}).writeFile({"file":file_previous, "content":json.dumps(result, sort_keys=False, default=str)})
 
-def getApplication(d) -> dict:
-    if "application" in d.get('request'):
-        index = d.get('request',{}).get('application')
-        e = class_files.Files({}).readJson(f"{dir_json}/xdm-application.json") 
-        i = e[index] if isinstance(index, int) else random.choice(e)
+def getApplication(eventdict:dict) -> dict:
+    if "application" in eventdict.get('request'):
+        index = eventdict.get('request',{}).get('application')
+        a = class_files.Files({}).readJson(f"{dir_json}/xdm-application.json") 
+        i = a[index] if isinstance(index, int) else random.choice(a)
         return  {"application":i}
 
-def getEnvironment(d) -> dict:
-    index = d.get('request',{}).get('environment')
+def getEnvironment(eventdict:dict) -> dict:
+    index = eventdict.get('request',{}).get('environment')
     e = class_files.Files({}).readJson(f"{dir_json}/xdm-environment.json") 
     i = e[index] if isinstance(index, int) else random.choice(e)
     return  {"environment":i}
@@ -102,89 +110,95 @@ def getWebReferrer(pageprevious:dict, webpagedetails:dict, webreferrer:dict) -> 
         return webreferrer
     return {"URL":pageprevious.get('URL'), "type":"internal"} if pageprevious else None
 
-def getWebPageDetails(hitid:str, g:dict, webpagedetails, webreferrer, webinteraction) -> dict:
+def getWebPageDetails(hitid:str, eventobj:dict, webpagedetails, webreferrer, webinteraction) -> dict:
     if webpagedetails:
-        c = copy.deepcopy(g)
+        c = copy.deepcopy(eventobj)
         webpagedetails.update({"pageViews": {"value": 1.0}}) 
         c.update({"eventType":"web.webPageDetails.pageViews", "web":{"webPageDetails":webpagedetails, "webReferrer":webreferrer}}) if isinstance(webreferrer, dict) and isinstance(webreferrer.get('URL'), dict) else c.update({"eventType":"web.webPageDetails.pageViews", "web":{"webPageDetails":webpagedetails}})
         return c
 
-def getWebInteraction(hitid:str, g:dict, webpagedetails, webreferrer, webinteraction) -> dict:
+def getWebInteraction(hitid:str, eventobj:dict, webpagedetails, webreferrer, webinteraction) -> dict:
     if webinteraction:
-        c = copy.deepcopy(g)
+        c = copy.deepcopy(eventobj)
         webinteraction.update({"linkClicks": {"type":"other", "value": 1.0, "id":hitid}}) 
         c.update({"eventType":"web.webInteraction.linkClicks", "web":{"webInteraction":webinteraction}})
         return c
 
-def getWeb(g:dict, d:dict) -> tuple:
+def getWeb(eventobj:dict, eventdict:dict) -> dict:
+    """ an event is either webPageDetails or webInteraction """
     hitid = randomUniqueString()
-    webpagedetails = d.get('eventcontent',{}).get('web',{}).get('webPageDetails')
-    webinteraction = d.get('eventcontent',{}).get('web',{}).get('webInteraction')
-    parsePrevious(d.get('index'), d.get('eventlist'))
+    webpagedetails = eventdict.get('eventjson',{}).get('web',{}).get('webPageDetails')
+    webinteraction = eventdict.get('eventjson',{}).get('web',{}).get('webInteraction')
+    parsePrevious(eventdict.get('index'), eventdict.get('eventlist'))
     pageprevious = class_files.Files({}).readJson(file_previous)
     pagecurrent = webpagedetails if isinstance(webpagedetails, dict) else pageprevious
-    webreferrer = getWebReferrer(pageprevious, webpagedetails, d.get('eventcontent',{}).get('web',{}).get('webReferrer'))
+    webreferrer = getWebReferrer(pageprevious, webpagedetails, eventdict.get('eventjson',{}).get('web',{}).get('webReferrer'))
     
     #print(f"\033[1;30;43m{d.get('index')} pageprevious =====> {pageprevious}\033[0m") if not re.search("^Windows", platform.platform()) else None 
     #print(f"\033[1;30;42m{d.get('index')} pagecurrent =====> {pagecurrent}\033[0m") if not re.search("^Windows", platform.platform()) else None
     #print(f"\033[1;30;45m{d.get('index')} webreferrer =====> {webreferrer}\033[0m") if not re.search("^Windows", platform.platform()) else None 
     
-    l = list(filter(None,[f(hitid, g, webpagedetails, webreferrer, webinteraction) for f in [getWebPageDetails, getWebInteraction]]))
-    w = {k:v for x in l for (k,v) in x.items()}
-    w.update({"hitid":hitid, "pageprevious":pageprevious, "pagecurrent":pagecurrent})
-    return w
+    weblist = list(filter(None,[f(hitid, eventobj, webpagedetails, webreferrer, webinteraction) for f in [getWebPageDetails, getWebInteraction]]))
+    web = {k:v for x in weblist for (k,v) in x.items()}
+    web.update({"hitid":hitid, "pageprevious":pageprevious, "pagecurrent":pagecurrent})
+    return web
 
-def getIdentityMap(ts:dict, r:dict) -> dict:
-    if isinstance(r.get('identityMap'), dict):
-        return r.get('identityMap')
-    path = f"{project_dir}/{r.get('identityMap')}" if isinstance(r.get('identityMap'), str) and os.path.exists(f"{project_dir}/{r.get('identityMap')}") else None
+def getIdentityMap(timestamp:dict, request:dict) -> dict:
+    if isinstance(request.get('identityMap'), dict):
+        return request.get('identityMap')
+    path = f"{project_dir}/{request.get('identityMap')}" if isinstance(request.get('identityMap'), str) and os.path.exists(f"{project_dir}/{request.get('identityMap')}") else None
     device = getStoredECID(path) if isinstance(path, str) and os.path.exists(path) and os.path.isdir(path) else id_service.fpidNew()
-    return idObj(ts, r, device)
+    return idObj(timestamp, request, device)
 
-def getResolution(e:dict) -> dict:
-    if isinstance(e.get('device'), dict):
-        return {"width":e.get('device',{}).get('screenWidth'), "height":e.get('device',{}).get('screenHeight'), "res":f"{e.get('device',{}).get('screenWidth')} x {e.get('device',{}).get('screenHeight')}"}
+def getResolution(environment:dict) -> dict:
+    if isinstance(environment.get('device'), dict):
+        return {"width":environment.get('device',{}).get('screenWidth'), "height":environment.get('device',{}).get('screenHeight'), "resolution":f"{environment.get('device',{}).get('screenWidth')} x {environment.get('device',{}).get('screenHeight')}"}
 
-def getContextData(d:dict, g:dict) -> dict:
-    cd = d.get('eventcontent',{}).get('cea')
-    c = cd if isinstance(cd, dict) else {}
+def getContextData(eventdict:dict, eventobj:dict) -> dict:
+    """ this function is custom to the implementation, sets custom context data variables """
+    cd = eventdict.get('eventjson',{}).get('data')
+    contextdata = cd if isinstance(cd, dict) else {}
 
-    resolution = getResolution(g.get('environment',{}))
+    res = getResolution(eventobj.get('environment',{}))
 
-    c.update({"cookielevel": "1"})
-    c.update({"countrycode": "be"})
-    c.update({"languagebrowserdevice": "en-BE"})
-    c.update({"languagepagesetting": "en"})
-    c.update({"ossystem": g.get('environment',{}).get('operatingSystem')}) if g.get('environment',{}).get('operatingSystem') else None
-    c.update({"osversion": g.get('environment',{}).get('operatingSystemVersion')}) if g.get('environment',{}).get('operatingSystemVersion') else None
-    c.update({"pagename": g.get('pagecurrent').get('name')}) if isinstance(g.get('pagecurrent'), dict) and g.get('pagecurrent').get('name') else None
-    c.update({"previouspagename": g.get('pageprevious').get('name')}) if isinstance(g.get('pageprevious'), dict) and g.get('pageprevious').get('name') else None
-    c.update({"receivedtimestamp": str(d.get('timestamp',{}).get('ms_increment'))})
-    c.update({"reference": g.get('hitid')})
-    c.update({"resolution": resolution.get('res')}) if isinstance(resolution, dict) and isinstance(resolution.get('res'), str) else None
-    c.update({"timestamp": str(d.get('timestamp',{}).get('ms'))})
+    contextdata.update({"cookielevel": "1"})
+    contextdata.update({"countrycode": "be"})
+    contextdata.update({"languagebrowserdevice": "en-BE"})
+    contextdata.update({"languagepagesetting": "en"})
+    contextdata.update({"ossystem": eventobj.get('environment',{}).get('operatingSystem')}) if eventobj.get('environment',{}).get('operatingSystem') else None
+    contextdata.update({"osversion": eventobj.get('environment',{}).get('operatingSystemVersion')}) if eventobj.get('environment',{}).get('operatingSystemVersion') else None
+    contextdata.update({"pagename": eventobj.get('pagecurrent').get('name')}) if isinstance(eventobj.get('pagecurrent'), dict) and eventobj.get('pagecurrent').get('name') else None
+    contextdata.update({"previouspagename": eventobj.get('pageprevious').get('name')}) if isinstance(eventobj.get('pageprevious'), dict) and eventobj.get('pageprevious').get('name') else None
+    contextdata.update({"receivedtimestamp": str(eventdict.get('timestamp',{}).get('ms_increment'))})
+    contextdata.update({"reference": eventobj.get('hitid')})
+    contextdata.update({"resolution": res.get('res')}) if isinstance(res, dict) and isinstance(res.get('resolution'), str) else None
+    contextdata.update({"timestamp": str(eventdict.get('timestamp',{}).get('ms'))})
     
-    if "device" in g.get('environment'): 
-        c.update({"devicename": g.get('environment',{}).get('device',{}).get('model')}) if g.get('environment',{}).get('device',{}).get('model') else None
-    if "application" in g: 
-        c.update({"appversion": "1.77.1"})
-        c.update({"libraryversion": "Android 1.4.2 | CEA 2.4.4-1669628165040"})
+    if "device" in eventobj.get('environment'): 
+        contextdata.update({"devicename": eventobj.get('environment',{}).get('device',{}).get('model')}) if eventobj.get('environment',{}).get('device',{}).get('model') else None
+    if "application" in eventobj: 
+        contextdata.update({"appversion": "1.77.1"})
+        contextdata.update({"libraryversion": "Android 1.4.2 | CEA 2.4.4-1669628165040"})
     
-    return dict(sorted(c.items()))
+    return dict(sorted(contextdata.items()))
 
-def userAuth(d:dict, g:dict, c:dict, i:dict) -> dict:
-    hitid = g.get('hitid')
-    del g['pageprevious']
-    del g['pagecurrent']
-    del g['hitid']
+def userAuth(eventdict:dict, eventobj:dict, contextdata:dict, idmap:dict) -> dict:
+    """ this function is custom to the implementation, 
+        custom identitymap keys
+        custom contextdata key name
+        finalizes eventobj if user is loggedOut """
+    hitid = eventobj.get('hitid')
+    del eventobj['pageprevious']
+    del eventobj['pagecurrent']
+    del eventobj['hitid']
 
-    loginstatus = d.get('eventcontent').get('cea',{}).get('loginstatus')
-    ecid = [ x.get('id') for x in i.get('ECID') ][0] if isinstance(i.get('ECID'), list) else None  
-    ecidprimary = [ x.get('primary') for x in i.get('ECID') ][0] if isinstance(i.get('ECID'), list) else None  
-    fpid = [ x.get('id') for x in i.get('FPID') ][0] if isinstance(i.get('FPID'), list) else None  
-    authenticatedState = [ x.get('authenticatedState') for x in i.get('FPID') ][0] if isinstance(i.get('FPID'), list) else None  
-    profileid = [ x.get('id') for x in i.get('ProfileID') ][0] if isinstance(i.get('ProfileID'), list) else None
-    customerid = [ x.get('id') for x in i.get('CustomerID') ][0] if isinstance(i.get('CustomerID'), list) else None
+    loginstatus = eventdict.get('eventjson').get('data',{}).get('loginstatus')
+    ecid = [ x.get('id') for x in idmap.get('ECID') ][0] if isinstance(idmap.get('ECID'), list) else None  
+    ecidprimary = [ x.get('primary') for x in idmap.get('ECID') ][0] if isinstance(idmap.get('ECID'), list) else None  
+    fpid = [ x.get('id') for x in idmap.get('FPID') ][0] if isinstance(idmap.get('FPID'), list) else None  
+    authenticatedState = [ x.get('authenticatedState') for x in idmap.get('FPID') ][0] if isinstance(idmap.get('FPID'), list) else None  
+    profileid = [ x.get('id') for x in idmap.get('ProfileID') ][0] if isinstance(idmap.get('ProfileID'), list) else None
+    customerid = [ x.get('id') for x in idmap.get('CustomerID') ][0] if isinstance(idmap.get('CustomerID'), list) else None
     auth = loginstatus if isinstance(loginstatus, str) and loginstatus == "loggedOut" else authenticatedState
     query = {"identity":{"fetch":["ECID"]}}
 
@@ -199,28 +213,28 @@ def userAuth(d:dict, g:dict, c:dict, i:dict) -> dict:
         }
     }
     
-    c.update({"fpid": fpid}) if isinstance(c, dict) and fpid else None
-    c.update({"marketingcloudid": ecid}) if isinstance(c, dict) and ecid else None
-    g.update({"_id":hitid})
-    g.update({"timestamp":d.get('timestamp',{}).get('utc_iso')})
-    g.update({"receivedTimestamp":d.get('timestamp',{}).get('utc_iso_increment')})
-    g.update({"endUserIDs":endUserIDs})
+    contextdata.update({"fpid": fpid}) if isinstance(contextdata, dict) and fpid else None
+    contextdata.update({"marketingcloudid": ecid}) if isinstance(contextdata, dict) and ecid else None
+    eventobj.update({"_id":hitid})
+    eventobj.update({"timestamp":eventdict.get('timestamp',{}).get('utc_iso')})
+    eventobj.update({"receivedTimestamp":eventdict.get('timestamp',{}).get('utc_iso_increment')})
+    eventobj.update({"endUserIDs":endUserIDs})
     
     identitymap = {}
     if auth == "loggedOut":
         identitymap['FPID'] = [{"id":fpid, "authenticatedState":"loggedOut", "primary": True}]
-        identitymap['ECID'] = i.get('ECID')
-        g.update({"cea":c})
-        g.update({"identityMap":identitymap})
-        return {"event":{"xdm":g}, "query":query}
+        identitymap['ECID'] = idmap.get('ECID')
+        eventobj.update({"cea":contextdata}) # custom contextdata key name
+        eventobj.update({"identityMap":identitymap})
+        return {"event":{"xdm":eventobj}, "query":query}
     
     identitymap['FPID'] = [{"id":fpid, "authenticatedState":auth, "primary": True}]
-    identitymap['ECID'] = i.get('ECID')
-    identitymap['ProfileID'] = i.get('ProfileID')
+    identitymap['ECID'] = idmap.get('ECID')
+    identitymap['ProfileID'] = idmap.get('ProfileID')
     
-    c.update({"customerid": customerid}) if isinstance(c, dict) and customerid else None
-    c.update({"profileid": profileid}) if isinstance(c, dict) and profileid else None
-    c.update({"loginstate": authenticatedState}) if isinstance(c, dict) and authenticatedState else None
+    contextdata.update({"customerid": customerid}) if isinstance(contextdata, dict) and customerid else None
+    contextdata.update({"profileid": profileid}) if isinstance(contextdata, dict) and profileid else None
+    contextdata.update({"loginstate": authenticatedState}) if isinstance(contextdata, dict) and authenticatedState else None
     
     experience = {
         "analytics":{
@@ -232,32 +246,32 @@ def userAuth(d:dict, g:dict, c:dict, i:dict) -> dict:
         }
     }
     
-    g.update({"cea":c})
-    g.update({"identityMap":identitymap})
-    g.update({"_experience":experience})
-    return {"event":{"xdm":g}, "query":query}
+    eventobj.update({"cea":contextdata}) # custom contextdata key name
+    eventobj.update({"identityMap":identitymap})
+    eventobj.update({"_experience":experience})
+    return {"event":{"xdm":eventobj}, "query":query}
 
-def getCommand(index:int, eventlist:list, t:dict, r:dict, eventfile:str) -> dict:
-    ts = class_converttime.Converttime({}).getTimestamp({"increment":300})
-    url = r.get('url')
-    streamid = r.get('streamid')
-    identitymap = getIdentityMap(ts, r)
-    eventcontent = class_files.Files({}).readJson(eventfile)
-    d = {"index":index, "timestamp":ts, "eventlist":r.get('eventlist'), "eventcontent":eventcontent, "request":r}
-    glist = list(filter(None,[f(d) for f in [getEnvironment, getApplication]]))
-    g = {k:v for x in glist for (k,v) in x.items()}
-    c = getContextData(d, getWeb(g, d))
-    data = userAuth(d, getWeb(g, d), c, identitymap)
+def buildRequest(index:int, eventlist:list, token:dict, request:dict, eventfile:str) -> dict:
+    timestamp = class_converttime.Converttime({}).getTimestamp({"increment":300})
+    url = request.get('url')
+    streamid = request.get('streamid')
+    idmap = getIdentityMap(timestamp, request)
+    eventjson = class_files.Files({}).readJson(eventfile)
+    eventdict = {"index":index, "timestamp":timestamp, "eventlist":eventlist, "eventjson":eventjson, "request":request}
+    glist = list(filter(None,[f(eventdict) for f in [getEnvironment, getApplication]]))
+    eventobj = {k:v for x in glist for (k,v) in x.items()}
+    cd = getContextData(eventdict, getWeb(eventobj, eventdict))
+    data = userAuth(eventdict, getWeb(eventobj, eventdict), cd, idmap)
     s = []
     s.append(f"curl.exe") if re.search("^Windows", platform.platform()) else s.append("curl")
     s.append(f"-X POST \"https://server.adobedc.net/ee/v2/interact?dataStreamId={streamid}\"")
-    s.append(f"-H \"Authorization: Bearer {t.get('token')}\"")
-    s.append(f"-H \"x-gw-ims-org-id: {t.get('orgid')}\"")
-    s.append(f"-H \"x-api-key: {t.get('apikey')}\"")
+    s.append(f"-H \"Authorization: Bearer {token.get('token')}\"")
+    s.append(f"-H \"x-gw-ims-org-id: {token.get('orgid')}\"")
+    s.append(f"-H \"x-api-key: {token.get('apikey')}\"")
     s.append(f"-H \"Content-Type: application/json\"")
     s.append(f"-d \"@{useFile(data)}\"") if re.search("^Windows", platform.platform()) else s.append(f"-d '{json.dumps(data)}'")
     command = " ".join(s)
-    return {"date":ts.get('date'), "time":ts.get('integer'), "data":data, "command":command}
+    return {"date":timestamp.get('date'), "time":timestamp.get('integer'), "data":data, "command":command}
 
 def useFile(data:dict) -> str:
     makeDirectory(dir_tmp)
@@ -266,37 +280,32 @@ def useFile(data:dict) -> str:
     class_files.Files({}).writeFile({"file":filepath, "content":json.dumps(data, sort_keys=False, default=str)})
     return filepath
 
-def makeRequest(index:int, eventlist:list, t:dict, request:dict, eventfile:str) -> None:
+def makeRequest(index:int, eventlist:list, token:dict, request:dict, eventfile:str) -> None:
     time.sleep(random.randint(3, 15)) if not dev and index > 0 else None
-    r = getCommand(index, eventlist, t, request, eventfile)
-    if isinstance(r, dict):
-        print(f"\033[1;37;44mdata =====> {json.dumps(r.get('data'))}\033[0m") if not re.search("^Windows", platform.platform()) else print("data =====>", json.dumps(r.get('data')), "\n")
+    reqbuild = buildRequest(index, eventlist, token, request, eventfile)
+    if isinstance(reqbuild, dict):
+        print(f"\033[1;37;44mdata =====> {json.dumps(reqbuild.get('data'))}\033[0m") if not re.search("^Windows", platform.platform()) else print("data =====>", json.dumps(reqbuild.get('data')), "\n")
         if not dev:
-            run = class_subprocess.Subprocess({}).run(r.get('command'))
-            parseResult(index, request, eventfile, r, run)
+            run = class_subprocess.Subprocess({}).run(reqbuild.get('command'))
+            parseResult(index, request, eventfile, reqbuild, run)
 
 def storeResponse(request:str, response:dict) -> None:
     directory = f"{project_dir}/{request.get('identityMap')}"
 
-def parseResult(index:int, request:dict, filepath:str, r:dict, run:Any) -> None:
-    if re.search(".xml$", filepath) and re.search("SUCCESS", run):
-        directory_log = f"{dir_log}/{r.get('date')}"
+def parseResult(index:int, request:dict, filepath:str, reqbuild:dict, run:str) -> None:
+    try:
+        directory_response = f"{dir_response}/{reqbuild.get('date')}"
+        directory_log = f"{dir_log}/{reqbuild.get('date')}"
+        makeDirectory(directory_response)
         makeDirectory(directory_log)
-        class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}.xml", "content":r.get('data')})  
-    elif re.search(".json$", filepath):
-        try:
-            directory_response = f"{dir_response}/{r.get('date')}"
-            directory_log = f"{dir_log}/{r.get('date')}"
-            makeDirectory(directory_response)
-            makeDirectory(directory_log)
-            response = json.loads("{\""+ run +"}") if re.search("^requestId", run) else run
-            class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{r.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)}) if re.search("^requestId", run) else None 
-            class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-log.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, default=str)})  
-            class_files.Files({}).writeFile({"file":f"{directory_log}/{r.get('time')}-format.json", "content":json.dumps({"request":r.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
-            storeResponse(request, response)
-            print("requestId:", response.get('requestId')) if isinstance(response, dict) else print("error:", run)
-        except Exception as e:
-            print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
+        response = json.loads("{\""+ run +"}") if re.search("^requestId", run) else run
+        class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{reqbuild.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)}) if re.search("^requestId", run) else None 
+        class_files.Files({}).writeFile({"file":f"{directory_log}/{reqbuild.get('time')}-log.json", "content":json.dumps({"request":reqbuild.get('data'), "response":response}, sort_keys=False, default=str)})  
+        class_files.Files({}).writeFile({"file":f"{directory_log}/{reqbuild.get('time')}-format.json", "content":json.dumps({"request":reqbuild.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
+        storeResponse(request, response)
+        print("requestId:", response.get('requestId')) if isinstance(response, dict) else print("error:", run)
+    except Exception as e:
+        print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
