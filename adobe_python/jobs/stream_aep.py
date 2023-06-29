@@ -9,7 +9,7 @@ package_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 project_dir = os.path.dirname(package_dir)
 sys.path.insert(0, project_dir)
 from adobe_python.classes import class_converttime, class_files, class_subprocess
-from adobe_python.jobs import id_service, oauth
+from adobe_python.jobs import oauth
 
 timestamp_numeric = int(time.time() * 1000.0)
 dir_tmp = f"{project_dir}/myfolder/events-sent/tmp"
@@ -54,24 +54,48 @@ def authState(request:dict) -> str:
 
 def idObj(timestamp:dict, request:dict, device:dict) -> dict:
     """ this function is custom to the implementation, builds the identityMap object to include specfic id keys """
-    dev = device if int(timestamp.get('integer')) < device.get('ecid',{}).get('timestamp',{}).get('end',{}).get('seconds') else id_service.ecidNew(device.get('fpid'))
-    fpid = dev.get('fpid').get('id')
-    ecid = dev.get('ecid').get('id')
+    #dev = device if isinstance(device.get('ecid'), dict) and int(timestamp.get('integer')) < device.get('ecid',{}).get('timestamp',{}).get('end',{}).get('seconds') else id_service.ecidNew(device.get('fpid'))
+    dev = device
+    fpid = dev.get('fpid',{}).get('id') if isinstance(dev, dict) and isinstance(dev.get('fpid'), dict) else None 
+    ecid = dev.get('ecid',{}).get('id') if isinstance(dev, dict) and isinstance(dev.get('ecid'), dict) else None
     result = {} 
-    result["FPID"] = [{"id":fpid, "authenticatedState": authState(request), "primary": True}] 
-    result["ECID"] = [{"id":ecid,"primary": True}]
+    result["FPID"] = [{"id":fpid, "authenticatedState": authState(request), "primary": True}]
+    if isinstance(ecid, str):
+        result["ECID"] = [{"id":ecid,"primary": True}]
     if isinstance(request.get('ProfileID'), list):
         result["ProfileID"] = request.get('ProfileID')
     if isinstance(request.get('CustomerID'), list):
         result["CustomerID"] = request.get('CustomerID')
     return result
 
-def getStoredECID(path:str) -> dict:
+def recentFile(path:str) -> dict:
+    makeDirectory(path)
     if len(os.listdir(path)) > 0:
         filepath = max([os.path.join(path,d) for d in os.listdir(path)], key=os.path.getmtime)
         return class_files.Files({}).readJson(filepath)
+        
+def getEcid(path:str) -> dict:
+    c = recentFile(path)
+    if not isinstance(c, dict):
+        return None
+    handle = c.get('response',{}).get('handle')
+    if not isinstance(handle, list):
+        return None
+    for p in handle:
+        e = list(filter(None, [ x.get('id') for x in p.get('payload') if x.get('namespace',{}).get('code') == "ECID"])) if isinstance(p.get('payload'), list) else None
+        if isinstance(e, list) and len(e) > 0 and isinstance(e[0], str):
+            return {"id":e[0]} 
+
+def getIdentityMap(timestamp:dict, request:dict) -> dict:
+    if isinstance(request.get('identityMap'), dict):
+        return request.get('identityMap')
+    path = f"{project_dir}/{request.get('identityMap')}" if isinstance(request.get('identityMap'), str) and os.path.exists(f"{project_dir}/{request.get('identityMap')}") else None
+    if not isinstance(path, str) and os.path.exists(path):
+        return None
     plist = path.split("/")
-    return id_service.ecidNew({"directory":path, "id":plist[-1]})
+    directory_storage = f"{str(path)}/storage"
+    device = {"fpid":{"directory":path, "id":plist[-1]}, "ecid":getEcid(directory_storage)}
+    return idObj(timestamp, request, device)
 
 def getPrevious(filename:str) -> dict:
     c = class_files.Files({}).readJson(f"{project_dir}/{filename}")
@@ -143,13 +167,6 @@ def getWeb(eventobj:dict, eventdict:dict) -> dict:
     web.update({"hitid":hitid, "pageprevious":pageprevious, "pagecurrent":pagecurrent})
     return web
 
-def getIdentityMap(timestamp:dict, request:dict) -> dict:
-    if isinstance(request.get('identityMap'), dict):
-        return request.get('identityMap')
-    path = f"{project_dir}/{request.get('identityMap')}" if isinstance(request.get('identityMap'), str) and os.path.exists(f"{project_dir}/{request.get('identityMap')}") else None
-    device = getStoredECID(path) if isinstance(path, str) and os.path.exists(path) and os.path.isdir(path) else id_service.fpidNew()
-    return idObj(timestamp, request, device)
-
 def getResolution(environment:dict) -> dict:
     if isinstance(environment.get('device'), dict):
         return {"width":environment.get('device',{}).get('screenWidth'), "height":environment.get('device',{}).get('screenHeight'), "resolution":f"{environment.get('device',{}).get('screenWidth')} x {environment.get('device',{}).get('screenHeight')}"}
@@ -201,63 +218,39 @@ def userAuth(eventdict:dict, eventobj:dict, contextdata:dict, idmap:dict) -> dic
     customerid = [ x.get('id') for x in idmap.get('CustomerID') ][0] if isinstance(idmap.get('CustomerID'), list) else None
     auth = loginstatus if isinstance(loginstatus, str) and loginstatus == "loggedOut" else authenticatedState
     query = {"identity":{"fetch":["ECID"]}}
-    identification = {"Identification":{"ecid":ecid}}
-
-    """
-    endUserIDs = {
-        "_experience":{
-            "mcid":{
-                "namespace":{"code":"ECID"},
-                "id":ecid,
-                "authenticatedState":auth,
-                "primary":ecidprimary
-            }
-        }
-    }
-    """
+    identification = {"Identification":{"ecid":ecid}} if isinstance(ecid, str) else {}
 
     contextdata.update({"fpid": fpid}) if isinstance(contextdata, dict) and fpid else None
     contextdata.update({"marketingcloudid": ecid}) if isinstance(contextdata, dict) and ecid else None
     eventobj.update({"_id":hitid})
     eventobj.update({"timestamp":eventdict.get('timestamp',{}).get('utc_iso')})
     eventobj.update({"receivedTimestamp":eventdict.get('timestamp',{}).get('utc_iso_increment')})
-    #eventobj.update({"endUserIDs":endUserIDs})
     
     identitymap = {}
     if auth == "loggedOut":
         identitymap['FPID'] = [{"id":fpid, "authenticatedState":"loggedOut", "primary": True}]
-        identitymap['ECID'] = idmap.get('ECID')
-        eventobj.update({"_ing_intermediairs":identification})
+        if isinstance(idmap.get('ECID'), list):
+            identitymap['ECID'] = idmap.get('ECID')
+        eventobj.update({"_ing_intermediairs":identification}) if isinstance(identification.get('ecid'), str) else None
         eventobj.update({"cea":contextdata}) # custom contextdata key name
         eventobj.update({"identityMap":identitymap})
         return {"event":{"xdm":eventobj}, "query":query}
-   
-    identification["Identification"]["profileid"] = profileid
+    
+    if isinstance(identification, dict) and profileid:
+        identification["Identification"]["profileid"] = profileid
 
     identitymap['FPID'] = [{"id":fpid, "authenticatedState":auth, "primary": True}]
-    identitymap['ECID'] = idmap.get('ECID')
+    if isinstance(idmap.get('ECID'), list):
+        identitymap['ECID'] = idmap.get('ECID')
     identitymap['ProfileID'] = idmap.get('ProfileID')
     
     contextdata.update({"customerid": customerid}) if isinstance(contextdata, dict) and customerid else None
     contextdata.update({"profileid": profileid}) if isinstance(contextdata, dict) and profileid else None
     contextdata.update({"loginstate": authenticatedState}) if isinstance(contextdata, dict) and authenticatedState else None
     
-    """
-    experience = {
-        "analytics":{
-            "customDimensions":{ 
-                "eVars":{
-                    "eVar16":profileid
-                }
-            }
-        }
-    }
-    """
-
-    eventobj.update({"_ing_intermediairs":identification})
+    eventobj.update({"_ing_intermediairs":identification}) if isinstance(identification, dict) and isinstance(identification.get('ecid'), str) or isinstance(identification.get('profileid'), str) else None
     eventobj.update({"cea":contextdata}) # custom contextdata key name
     eventobj.update({"identityMap":identitymap})
-    #eventobj.update({"_experience":experience})
     return {"event":{"xdm":eventobj}, "query":query}
 
 def buildRequest(index:int, eventlist:list, token:dict, request:dict, eventfile:str) -> dict:
@@ -298,8 +291,12 @@ def makeRequest(index:int, eventlist:list, token:dict, request:dict, eventfile:s
             run = class_subprocess.Subprocess({}).run(reqbuild.get('command'))
             parseResult(index, request, eventfile, reqbuild, run)
 
-def storeResponse(request:str, response:dict) -> None:
-    directory = f"{project_dir}/{request.get('identityMap')}"
+def deviceStorage(directory_storage:str, reqbuild:str, response:dict) -> None:
+    if isinstance(response, dict): 
+        makeDirectory(directory_storage)
+        file_response = f"{directory_storage}/response.json"
+        os.remove(file_response) if os.path.exists(file_response) else None
+        class_files.Files({}).writeFile({"file":file_response, "content":json.dumps({"request":reqbuild.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
 
 def parseResult(index:int, request:dict, filepath:str, reqbuild:dict, run:str) -> None:
     try:
@@ -309,9 +306,8 @@ def parseResult(index:int, request:dict, filepath:str, reqbuild:dict, run:str) -
         makeDirectory(directory_log)
         response = json.loads("{\""+ run +"}") if re.search("^requestId", run) else run
         class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{reqbuild.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)}) if re.search("^requestId", run) else None 
-        #class_files.Files({}).writeFile({"file":f"{directory_log}/{reqbuild.get('time')}-log.json", "content":json.dumps({"request":reqbuild.get('data'), "response":response}, sort_keys=False, default=str)})  
-        class_files.Files({}).writeFile({"file":f"{directory_log}/{reqbuild.get('time')}-format.json", "content":json.dumps({"request":reqbuild.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
-        storeResponse(request, response)
+        class_files.Files({}).writeFile({"file":f"{directory_log}/{reqbuild.get('time')}.json", "content":json.dumps({"request":reqbuild.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
+        deviceStorage(f"{project_dir}/{request.get('identityMap')}/storage", reqbuild, response)
         print("requestId:", response.get('requestId')) if isinstance(response, dict) else print("error:", run)
     except Exception as e:
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 

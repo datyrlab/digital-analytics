@@ -72,7 +72,7 @@ def getCommand_analytics(url:str, r:dict) -> str:
     return command
 
 def getCommand_platform(url:str, r:dict) -> str:
-    if not re.search("platform.adobe.io", url):
+    if not re.search("platform.adobe.io|platform-nld2.adobe.io", url):
         return None
     t = oauth.getAccessToken()
     s = []
