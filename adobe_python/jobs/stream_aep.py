@@ -36,7 +36,12 @@ def parseRequest(request:dict) -> None:
     if isinstance(request, dict):
         token = {} if dev else oauth.getAccessToken()
         request.update({"identityMap":fpidNew()}) if not isinstance(request.get('identityMap'), str) else None
+        profileid = getUserID(request, "ProfileID")
+        customerid = getUserID(request, "CustomerID")
+        request.update({"ProfileID":[{"id":profileid, "primary": True}]}) if not isinstance(request.get('ProfileID'), list) else None
+        request.update({"CustomerID":[{"id":customerid, "primary": False}]}) if not isinstance(request.get('CustomerID'), list) else None
         eventlist = getEventList(request.get('eventlist'))
+        print(request)
         [(lambda x: makeRequest(i, eventlist, token, request, f"{project_dir}/{x}"))(x) for i, x in enumerate(eventlist)] if isinstance(eventlist, list) and len(eventlist) > 0 else print("Event list is empty")
 
 def fpidNew() -> dict:
@@ -54,13 +59,34 @@ def getEventList(eventlist:list) -> list:
 def randomUniqueString() -> str:
     return uuid.uuid4().hex[:25].upper()
 
+def randomUniqueStringSha() -> str:
+    t = str(time.time())
+    sh = hashlib.sha1(t.encode())
+    hd = sh.hexdigest()
+    return str(hd)
+
+def storeUserID(directory:str, filepath:str, item:str) -> None:
+    if not os.path.exists(filepath):
+        makeDirectory(directory)
+        class_files.Files({}).writeFile({"file":filepath, "content":item})
+    return item
+
+def getUserID(request:dict, name:str) -> str:
+    print()
+    directory = f"{project_dir}/{request.get('identityMap')}/userids"
+    filepath = f"{directory}/{name}.txt"
+    item = [ x.get('id') for x in request.get(name) ][0] if isinstance(request.get(name), list) else randomUniqueStringSha()
+    storeUserID(directory, filepath, item)
+    c = class_files.Files({}).readFile(filepath)
+    return storeUserID(directory, filepath, c[0]) if isinstance(c, list) and len(c) > 0 else storeUserID(directory, filepath, randomUniqueStringSha()) 
+
 def authState(request:dict) -> str:
     profileid = [ x.get('id') for x in request.get('ProfileID') ][0] if isinstance(request.get('ProfileID'), list) else None
     customerid = [ x.get('id') for x in request.get('CustomerID') ][0] if isinstance(request.get('CustomerID'), list) else None  
     return "loggedOut" if not profileid and not customerid else "authenticated"
 
 def idObj(timestamp:dict, request:dict, device:dict) -> dict:
-    """ this function is custom to the implementation, builds the identityMap object to include specfic id keys """
+    """ custom to the implementation, build the identityMap object to include specific id keys """
     #dev = device if isinstance(device.get('ecid'), dict) and int(timestamp.get('integer')) < device.get('ecid',{}).get('timestamp',{}).get('end',{}).get('seconds') else id_service.ecidNew(device.get('fpid'))
     dev = device
     fpid = dev.get('fpid',{}).get('id') if isinstance(dev, dict) and isinstance(dev.get('fpid'), dict) else None 
@@ -179,7 +205,7 @@ def getResolution(environment:dict) -> dict:
         return {"width":environment.get('device',{}).get('screenWidth'), "height":environment.get('device',{}).get('screenHeight'), "resolution":f"{environment.get('device',{}).get('screenWidth')} x {environment.get('device',{}).get('screenHeight')}"}
 
 def getContextData(eventdict:dict, eventobj:dict) -> dict:
-    """ this function is custom to the implementation, sets custom context data variables """
+    """ custom context data variables """
     cd = eventdict.get('eventjson',{}).get('data')
     contextdata = cd if isinstance(cd, dict) else {}
 
@@ -207,7 +233,7 @@ def getContextData(eventdict:dict, eventobj:dict) -> dict:
     return dict(sorted(contextdata.items()))
 
 def userAuth(eventdict:dict, eventobj:dict, contextdata:dict, idmap:dict) -> dict:
-    """ this function is custom to the implementation, 
+    """ custom to the implementation, 
         custom identitymap keys
         custom contextdata key name
         finalizes eventobj if user is loggedOut """
@@ -243,7 +269,9 @@ def userAuth(eventdict:dict, eventobj:dict, contextdata:dict, idmap:dict) -> dic
         eventobj.update({"identityMap":identitymap})
         return {"event":{"xdm":eventobj}, "query":query}
     
-    if isinstance(identification, dict) and profileid:
+    if not isinstance(identification.get('Identification'), dict):
+        identification.update({"Identification":{"profileid":profileid}})
+    else:
         identification["Identification"]["profileid"] = profileid
 
     identitymap['FPID'] = [{"id":fpid, "authenticatedState":auth, "primary": True}]
@@ -255,7 +283,7 @@ def userAuth(eventdict:dict, eventobj:dict, contextdata:dict, idmap:dict) -> dic
     contextdata.update({"profileid": profileid}) if isinstance(contextdata, dict) and profileid else None
     contextdata.update({"loginstate": authenticatedState}) if isinstance(contextdata, dict) and authenticatedState else None
     
-    eventobj.update({"_ing_intermediairs":identification}) if isinstance(identification, dict) and isinstance(identification.get('ecid'), str) or isinstance(identification.get('profileid'), str) else None
+    eventobj.update({"_ing_intermediairs":identification})
     eventobj.update({"cea":contextdata}) # custom contextdata key name
     eventobj.update({"identityMap":identitymap})
     return {"event":{"xdm":eventobj}, "query":query}
@@ -303,7 +331,7 @@ def deviceStorage(directory_storage:str, reqbuild:str, response:dict) -> None:
         makeDirectory(directory_storage)
         file_response = f"{directory_storage}/response.json"
         os.remove(file_response) if os.path.exists(file_response) else None
-        class_files.Files({}).writeFile({"file":file_response, "content":json.dumps({"request":reqbuild.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
+        class_files.Files({}).writeFile({"file":file_response, "content":json.dumps({"previousrequest":reqbuild.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
 
 def parseResult(index:int, request:dict, filepath:str, reqbuild:dict, run:str) -> None:
     try:
