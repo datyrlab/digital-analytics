@@ -8,7 +8,7 @@ sys.path.insert(0, project_dir)
 from adobe_python.classes import class_files, class_subprocess
 from adobe_python.jobs import id_service, stream_aep
 
-dir_tmp = f"{package_dir}/tests/tmp"
+dir_tmp = f"{package_dir}/myfolder/tmp"
 dir_fpid = f"{project_dir}/myfolder/device/CB97A43915A948729C77CF6AC"
 
 class TestIDservice(unittest.TestCase):
