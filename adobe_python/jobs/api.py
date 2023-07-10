@@ -8,7 +8,7 @@ package_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 project_dir = os.path.dirname(package_dir)
 sys.path.insert(0, project_dir)
 from adobe_python.classes import class_converttime, class_files, class_subprocess
-from adobe_python.jobs import ims_client, oauth
+from adobe_python.jobs import ims_client, oauth, parse_reportsuite
 
 timestamp_numeric = int(time.time() * 1000.0)
 dir_admin = f"{project_dir}/myfolder/adobe"
@@ -101,17 +101,23 @@ def parseResult(request:dict, run:Any) -> None:
         tsinteger = getTimestamp()
         path = re.sub("REPLACETIMESTAMP", str(tsinteger), f"{project_dir}/{request.get('save')}") if request.get('save') else f"{project_dir}/myfolder/adobe-admin/{str(tsinteger)}"
         p = class_files.Files({}).fileProperties(path)
-        path_log = f"{p.get('path')}/{p.get('name')}-log{p.get('file_extension')}" 
-        path_format = f"{p.get('path')}/{p.get('name')}-format{p.get('file_extension')}" 
-        os.remove(path_log) if os.path.exists(path_log) else None
+        path_format = f"{p.get('path')}/{p.get('name')}{p.get('file_extension')}" 
         os.remove(path_format) if os.path.exists(path_format) else None
         makeDirectory(os.path.dirname(path))
         response = json.loads("{\""+ run +"}")
-        class_files.Files({}).writeFile({"file":f"{path_log}", "content":json.dumps(response, sort_keys=False, default=str)})  
         class_files.Files({}).writeFile({"file":f"{path_format}", "content":json.dumps(response, sort_keys=False, indent=4, default=str)})  
         print(f"\033[1;37;42mresponse: {path}\033[0m") if not re.search("^Windows", platform.platform()) else print("response =====>", path, "\n") 
     except Exception as e:
+        path_format = f"{p.get('path')}/{p.get('name')}{p.get('file_extension')}" 
+        class_files.Files({}).writeFile({"file":f"{path_format}", "content":json.dumps(json.loads("{"+ run), sort_keys=False, indent=4, default=str)})  
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
+    finally:
+        parseResults(request, path_format)
+
+def parseResults(request:dict, filepath:str):
+    if re.search("-Get", filepath):
+        class_files.Files({}).fileProperties(filepath)
+        parse_reportsuite.parseJson([re.sub(project_dir, '', filepath)])
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
