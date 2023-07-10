@@ -14,7 +14,7 @@ dir_fpid = f"{project_dir}/myfolder/device/CB97A43915A948729C77CF6AC"
 class TestIDservice(unittest.TestCase):
     
     def test_fpidNew(self):
-        print(stream_aep.fpidNew())
+        print(stream.fpidNew())
 
     def test_fpidNewMultiple(self):
         def makeDirectory(directory:str) -> None:  
@@ -34,19 +34,19 @@ class TestIDservice(unittest.TestCase):
         
         def commandsLinux(timestamp:str, device:str, devicetype:str):
             testcase = getTestCase(devicetype)
-            linux = f"python3 $HOME/myprojects/digital-analytics/adobe_python/jobs/stream_aep.py -re '[{{\"streamid\":\"xxxx\", \"device\":\"{device}\", \"dirlist\":[\"{testcase}\"]}}]'\n"
+            linux = f"python3 $HOME/myprojects/digital-analytics/adobe_python/jobs/stream.py -re '[{{\"streamid\":\"xxxx\", \"device\":\"{device}\", \"dirlist\":[\"{testcase}\"]}}]'\n"
             class_files.Files({}).writeFile({"file":f"{dir_tmp}/{timestamp}-linux.txt", "content":f"# {devicetype}\n{linux}"})
         
         def commandsWindows(timestamp:str, device:str, devicetype:str):
             testcase = getTestCase(devicetype)
-            windows = f"python3 $HOME/myprojects/digital-analytics/adobe_python/jobs/stream_aep.py -re '[{{\\\"streamid\\\":\\\"xxxx\\\", \\\"device\\\":\\\"{device}\\\", \\\"dirlist\\\":[\\\"{testcase}\\\"]}}]'\n"
+            windows = f"python3 $HOME/myprojects/digital-analytics/adobe_python/jobs/stream.py -re '[{{\\\"streamid\\\":\\\"xxxx\\\", \\\"device\\\":\\\"{device}\\\", \\\"dirlist\\\":[\\\"{testcase}\\\"]}}]'\n"
             class_files.Files({}).writeFile({"file":f"{dir_tmp}/{timestamp}-windows.txt", "content":f"# {devicetype}\n{windows}"})
         
         def createIDs(timestamp:str, index:int, devicetype:str) -> str:
             if index == 0:
-                device = stream_aep.fpidNew()
-                stream_aep.getUserID({'device': device}, "ProfileID")    
-                stream_aep.getUserID({'device': device}, "CustomerID")
+                device = stream.fpidNew()
+                stream.getUserID({'device': device}, "ProfileID")    
+                stream.getUserID({'device': device}, "CustomerID")
                 file = f"{dir_tmp}/device.txt"
                 makeDirectory(dir_tmp)
                 os.remove(file) if os.path.exists(file) else None
@@ -59,7 +59,7 @@ class TestIDservice(unittest.TestCase):
             if index > 0:
                 c = class_files.Files({}).readFile(f'{dir_tmp}/device.txt')[0]
                 source = f"{project_dir}/{c}"
-                t = stream_aep.fpidNew()
+                t = stream.fpidNew()
                 target = f"{project_dir}/{t}"
                 class_subprocess.Subprocess({}).run(f"cp -a '{source}/.' '{target}'")
                 commandsLinux(timestamp, t, devicetype) 
