@@ -61,7 +61,7 @@ class TestIDservice(unittest.TestCase):
                 source = f"{project_dir}/{c}"
                 t = stream.fpidNew()
                 target = f"{project_dir}/{t}"
-                class_subprocess.Subprocess({}).run(f"cp -a '{source}/.' '{target}'") if not re.search("^Windows", platform.platform()) else class_subprocess.Subprocess({}).run(f"Copy-Item -Path '{source}\*' -Destination '{target}' -PassThru")
+                class_subprocess.Subprocess({}).run(f"cp -a '{source}/.' '{target}'") if not re.search("^Windows", platform.platform()) else class_subprocess.Subprocess({}).run(f"powershell -Command \"Copy-Item -Path '{source}\*' -Destination '{target}' -PassThru\"")
                 commandsLinux(timestamp, t, devicetype) 
                 commandsWindows(timestamp, t, devicetype)
                 print(devicetype, target)
