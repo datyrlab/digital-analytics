@@ -117,7 +117,7 @@ def parseResult(request:dict, run:Any) -> None:
 def parseResults(request:dict, filepath:str):
     if re.search("-Get", filepath):
         class_files.Files({}).fileProperties(filepath)
-        parse_reportsuite.parseJson([re.sub(project_dir, "", filepath)])
+        parse_reportsuite.parseJson([re.sub(str(project_dir), "", str(filepath))])
 
 def makeDirectory(directory:str) -> None:
     if isinstance(directory, str) and not os.path.exists(directory):
