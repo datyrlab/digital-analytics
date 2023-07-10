@@ -19,7 +19,7 @@ dir_json = f"{package_dir}/json"
 dir_response = f"{project_dir}/myfolder/events-sent/response"
 file_previous = f"{dir_tmp}/previous.json"
 
-dev = True
+dev = False
 
 def main():
     requestlist = parseArgs(sys.argv)
@@ -311,9 +311,10 @@ def getCustomDimensions(obj:dict, environment:dict, webobj:dict, idmap:dict) -> 
         o.update({f"{var}15": event.get('profileType')}) if isinstance(event.get('profileType'), str) and not event.get('profileType') == "" else None
         o.update({f"{var}16": profileid}) if profileid and not event.get('loginstatus') == "loggedOut" else None 
         o.update({f"{var}17": event.get('displayMode')}) if isinstance(event.get('displayMode'), str) and not event.get('displayMode') == "" else None
-        o.update({f"{var}18": event.get('eventName')}) if isinstance(event.get('eventName'), str) and not event.get('eventName') == "" else None
+        o.update({f"{var}18": event.get('terminalId')}) if isinstance(event.get('terminalId'), str) and not event.get('terminalId') == "" else None
         o.update({f"{var}19": event.get('languageBrowser')}) if isinstance(event.get('languageBrowser'), str) and not event.get('languageBrowser') == "" else None
         o.update({f"{var}22": event.get('formStep')}) if isinstance(event.get('formStep'), str) and not event.get('formStep') == "" else None
+        o.update({f"{var}23": event.get('eventName')}) if isinstance(event.get('eventName'), str) and not event.get('eventName') == "" else None
         o.update({f"{var}25": event.get('cookieLevel')}) if isinstance(event.get('cookieLevel'), str) and not event.get('cookieLevel') == "" else None
         o.update({f"{var}33": event.get('experiments')}) if isinstance(event.get('experiments'), dict) and bool(event.get('experiments')) else None
         o.update({f"{var}35": event.get('error')}) if isinstance(event.get('error'), str) and not event.get('error') == "" else None
@@ -327,7 +328,7 @@ def getCustomDimensions(obj:dict, environment:dict, webobj:dict, idmap:dict) -> 
         o.update({f"{var}50": str(obj.get('timestamp',{}).get('ms'))})
         o.update({f"{var}52": environment.get('environment',{}).get('operatingSystem')}) if isinstance(environment, dict) and environment.get('environment',{}).get('operatingSystem') else None
         o.update({f"{var}53": environment.get('environment',{}).get('operatingSystemVersion')}) if isinstance(environment, dict) and environment.get('environment',{}).get('operatingSystemVersion') else None
-        o.update({f"{var}68": str(obj.get('timestamp',{}).get('ms_increment'))})
+        o.update({f"{var}67": str(obj.get('timestamp',{}).get('ms_increment'))})
         if "application" in obj: 
             o.update({f"{var}58": appversion})
             o.update({f"{var}57": libraryversion})
@@ -375,7 +376,10 @@ def getEventMetrics(obj:dict, environment:dict, webobj:dict, customdimensions:di
         return o if bool(o) else None
 
     lookup = { 
-        "type": [{"16":["^ERROR$"]}, {"20":["^ELEMENTS_ACTIONS$"]}]
+        "eventName": [{"19":["^.*$"]}],
+        #"experiments": [{"26":[{}]}],
+        "form": [{"19":["^.*$"]}],
+        "type": [{"16":["^ERROR$"]}, {"20":["^ELEMENTS_ACTIONS$"]}],
     }
     
     return buildObj(parseObj(lookup, obj))
