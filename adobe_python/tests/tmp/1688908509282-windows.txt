@@ -1,9 +1,0 @@
-# desktop
-python3 $HOME/myprojects/digital-analytics/adobe_python/jobs/stream_aep.py -re '[{\"streamid\":\"xxxx\", \"device\":\"myfolder/device/7dd63902-ddcd-4982-8183-56c258ad3b7b\", \"dirlist\":[\"myfolder/testcases/test-desktop\"]}]'
-
-# mobile-app
-python3 $HOME/myprojects/digital-analytics/adobe_python/jobs/stream_aep.py -re '[{\"streamid\":\"xxxx\", \"device\":\"myfolder/device/e4791187-4873-4c99-ae7d-162e5d69062b\", \"dirlist\":[\"myfolder/testcases/test-mobile-app\"]}]'
-
-# mobile-browser
-python3 $HOME/myprojects/digital-analytics/adobe_python/jobs/stream_aep.py -re '[{\"streamid\":\"xxxx\", \"device\":\"myfolder/device/138867a9-59df-4bee-a8fe-5629e61b3eaf\", \"dirlist\":[\"myfolder/testcases/test-mobile-browser\"]}]'
-
