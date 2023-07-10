@@ -9,7 +9,7 @@ package_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 project_dir = os.path.dirname(package_dir)
 sys.path.insert(0, project_dir)
 from adobe_python.classes import class_converttime, class_files, class_subprocess
-from adobe_python.jobs import id_service, oauth
+from adobe_python.jobs import oauth
 from adobe_python.tests import device_environments
 
 timestamp_numeric = int(time.time() * 1000.0)
