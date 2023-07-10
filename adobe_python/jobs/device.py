@@ -74,7 +74,7 @@ def saveCommands(request:dict, timestamp:str, device:str, devicetype:str) -> Non
     content = linux if not re.search("^Windows", platform.platform()) else windows
     file = f"{dir_tmp}/{timestamp}.txt"
     class_files.Files({}).writeFile({"file":file, "content":content})
-    stream.printCol("cyan", content)
+    stream.printCol("cyan", content) if not re.search("^Windows", platform.platform()) else print(content)
     
 def makeDirectory(directory:str) -> None:  
     if isinstance(directory, str) and not os.path.exists(directory):
