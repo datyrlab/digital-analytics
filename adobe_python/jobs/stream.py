@@ -19,7 +19,7 @@ dir_json = f"{package_dir}/json"
 dir_response = f"{project_dir}/myfolder/events-sent/response"
 file_previous = f"{dir_tmp}/previous.json"
 
-dev = True
+dev = False
 
 def main():
     requestlist = parseArgs(sys.argv)
