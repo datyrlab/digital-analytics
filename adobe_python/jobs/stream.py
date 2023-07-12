@@ -19,7 +19,7 @@ dir_json = f"{package_dir}/json"
 dir_response = f"{project_dir}/myfolder/events-sent/response"
 file_previous = f"{dir_tmp}/previous.json"
 
-dev = False
+dev = True
 
 def main():
     requestlist = parseArgs(sys.argv)
@@ -175,7 +175,8 @@ def getEnvironment(obj:dict) -> dict:
     
     def userAgent(category:str) -> str:
         if category == "dba":
-            #return "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9"
+            return "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9"
+        else:
             return "Mozilla/5.0 (Linux; Android 12; SM-S906N Build/QP1A.190711.020; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/80.0.3987.119 Mobile Safari/537.36"
     
     def resolution(orientation:str, s:str):
@@ -285,69 +286,111 @@ def getWeb(obj:dict) -> dict:
     return {"event":{"hitid":hitid}, "webevent":web}
 
 def getCustomDimensions(obj:dict, environment:dict, webobj:dict, idmap:dict) -> dict:
-    def getVars(var:str, webobj:dict):
-        def getItem(webobj:dict, item:str) -> str:
-            r = list(filter(None,[ x.get(item) for x in webobj.get('webevent') if x.get(item)])) if isinstance(webobj.get('webevent'), list) else None
-            return r[0] if len(r) > 0 else None
-        
+    def getCustom(obj:dict, environment:dict, webobj:dict, idmap:dict) -> list:
+        event = obj.get('event')
+        authenticatedstate = [ x.get('authenticatedState') for x in idmap.get('FPID') ][0] if isinstance(idmap.get('FPID'), list) else None  
+        customerid = [ x.get('id') for x in idmap.get('CustomerID') ][0] if isinstance(idmap.get('CustomerID'), list) else None
+        ecid = [ x.get('id') for x in idmap.get('ECID') ][0] if isinstance(idmap.get('ECID'), list) else None  
+        profileid = [ x.get('id') for x in idmap.get('ProfileID') ][0] if isinstance(idmap.get('ProfileID'), list) else None
         parameters = getItem(webobj, "parameters")
         subsection = getItem(webobj, "subsection")
+        ipaddress = environment.get('environment',{}).get('ipV4')
+        operatingSystem = environment.get('environment',{}).get('operatingSystem')
+        operatingSystemVersion = environment.get('environment',{}).get('operatingSystemVersion')
+        useragent = environment.get('environment',{}).get('browserDetails',{}).get('userAgent')
+        l = [
+            {"eVar":50, "prop":50, "value":str(obj.get('timestamp',{}).get('ms'))},
+            {"eVar":67, "prop":67, "value":str(obj.get('timestamp',{}).get('ms_increment'))}
+        ]
+        l.append({"eVar":6, "prop":6, "value":subsection}) if isinstance(subsection, str) else None
+        l.append({"prop":7, "value":ipaddress}) if isinstance(ipaddress, str) else None
+        l.append({"eVar":12, "prop":12, "value":customerid}) if not event.get('loginstatus') == "loggedOut" and isinstance(customerid, str) else None 
+        l.append({"eVar":14, "prop":14, "value":ecid}) if not event.get('loginstatus') == "loggedOut" and isinstance(ecid, str) else None
+        l.append({"eVar":13, "prop":13, "value":event.get('loginstatus')}) if event.get('loginstatus') == "loggedOut" else l.append({"evar":13, "prop":13, "value":authenticatedstate})
+        l.append({"eVar":16, "prop":16, "value":profileid}) if not event.get('loginstatus') == "loggedOut" and isinstance(profileid, str) else None
+        l.append({"eVar":44, "prop":44, "value":parameters}) if isinstance(parameters, str) else None
+        l.append({"prop":49, "value":webobj.get('event').get('hitid')})
+        l.append({"eVar":52, "prop":52, "value":operatingSystem}) if isinstance(operatingSystem, str) else None
+        l.append({"eVar":53, "prop":53, "value":operatingSystemVersion}) if isinstance(operatingSystemVersion, str) else None
+        l.append({"eVar":66, "prop":66, "value":useragent}) if isinstance(useragent, str) else None
+        return l
+    
+    def getItem(webobj:dict, item:str) -> str:
+        r = list(filter(None,[ x.get(item) for x in webobj.get('webevent') if x.get(item)])) if isinstance(webobj.get('webevent'), list) else None
+        return r[0] if len(r) > 0 else None
 
+    def addMap(name:str, l:list, lookupcustom:list) -> tuple:
+        def updateObj(x:dict, y:dict) -> dict:
+            if bool(y):
+                x.update(y)
+            return x
+
+        x = {k:v for d in l for k, v in d.items()} if len(l) > 0  else {} 
+        y = {f"{name}{v}":d.get('value') for d in lookupcustom for k, v in d.items() if name == k} if len(lookupcustom) > 0 else None
+        return updateObj(x, y)
+
+    def getMap(name:str, k:str, v) -> dict:
+        if isinstance(v.get(name), int) and v.get('type') == "string" and isinstance(k, str) and not k == "":
+            return {f"{name}{str(v.get(name))}":k}
+        elif isinstance(v.get(name), int) and v.get('type') == "int" and isinstance(k, int):
+            return {f"{name}{str(v.get(name))}":k}
+        elif isinstance(v.get(name), int) and v.get('type') == "map" and bool(k):
+            return {f"{name}{str(v.get(name))}":k}
+
+    def parseObj(lookup:list, lookupcustom:list, obj:dict) -> list:
+        e = list(filter(None, [getMap("eVar", obj.get('event').get(k), lookup.get(k)) for k, v in obj.get('event').items() if k in lookup]))
+        p = list(filter(None, [getMap("prop", obj.get('event').get(k), lookup.get(k)) for k, v in obj.get('event').items() if k in lookup]))
+        evars = addMap("eVar", e, lookupcustom) 
+        props = addMap("prop", p, lookupcustom) 
         o = {}
-        o.update({f"{var}1": event.get('application')}) if isinstance(event.get('application'), str) and not event.get('application') == "" else None
-        o.update({f"{var}2": event.get('pageName')}) if isinstance(event.get('pageName'), str) and not event.get('pageName') == "" else None
-        o.update({f"{var}3": event.get('pageType')}) if isinstance(event.get('pageType'), str) and not event.get('pageType') == "" else None
-        o.update({f"{var}4": event.get('prevPageName')}) if isinstance(event.get('prevPageName'), str) and not event.get('prevPageName') == "" else None
-        o.update({f"{var}5": event.get('pageURL')}) if isinstance(event.get('pageURL'), str) and not event.get('pageURL') == "" else None
-        o.update({f"{var}6": subsection}) if isinstance(subsection, str) else None
-        o.update({f"{var}7": environment.get('environment',{}).get('ipV4')}) if isinstance(environment, dict) and environment.get('environment',{}).get('ipV4') else None
-        o.update({f"{var}8": event.get('channel')}) if isinstance(event.get('channel'), str) and not event.get('channel') == "" else None
-        o.update({f"{var}9": event.get('category')}) if isinstance(event.get('category'), str) and not event.get('category') == "" else None
-        o.update({f"{var}10": event.get('countryCode')}) if isinstance(event.get('countryCode'), str) and not event.get('countryCode') == "" else None
-        o.update({f"{var}11": event.get('lang')}) if isinstance(event.get('lang'), str) and not event.get('lang') == "" else None
-        o.update({f"{var}12": customerid}) if not event.get('loginstatus') == "loggedOut" else None 
-        o.update({f"{var}13": event.get('loginstatus')}) if event.get('loginstatus') == "loggedOut" else o.update({f"{var}13": authenticatedstate}) 
-        o.update({f"{var}14": ecid}) if ecid else None 
-        o.update({f"{var}15": event.get('profileType')}) if isinstance(event.get('profileType'), str) and not event.get('profileType') == "" else None
-        o.update({f"{var}16": profileid}) if profileid and not event.get('loginstatus') == "loggedOut" else None 
-        o.update({f"{var}17": event.get('displayMode')}) if isinstance(event.get('displayMode'), str) and not event.get('displayMode') == "" else None
-        o.update({f"{var}18": event.get('terminalId')}) if isinstance(event.get('terminalId'), str) and not event.get('terminalId') == "" else None
-        o.update({f"{var}19": event.get('languageBrowser')}) if isinstance(event.get('languageBrowser'), str) and not event.get('languageBrowser') == "" else None
-        o.update({f"{var}22": event.get('formStep')}) if isinstance(event.get('formStep'), str) and not event.get('formStep') == "" else None
-        o.update({f"{var}23": event.get('eventName')}) if isinstance(event.get('eventName'), str) and not event.get('eventName') == "" else None
-        o.update({f"{var}25": event.get('cookieLevel')}) if isinstance(event.get('cookieLevel'), str) and not event.get('cookieLevel') == "" else None
-        o.update({f"{var}33": event.get('experiments')}) if isinstance(event.get('experiments'), dict) and bool(event.get('experiments')) else None
-        o.update({f"{var}35": event.get('error')}) if isinstance(event.get('error'), str) and not event.get('error') == "" else None
-        o.update({f"{var}36": event.get('errorType')}) if isinstance(event.get('errorType'), str) and not event.get('errorType') == "" else None
-        o.update({f"{var}37": event.get('formType')}) if isinstance(event.get('formType'), str) and not event.get('formType') == "" else None
-        o.update({f"{var}38": event.get('formId')}) if isinstance(event.get('formId'), str) and not event.get('formId') == "" else None
-        o.update({f"{var}39": event.get('formOutcome')}) if isinstance(event.get('formOutcome'), str) and not event.get('formOutcome') == "" else None
-        o.update({f"{var}44": parameters}) if isinstance(parameters, str) else None
-        o.update({f"{var}45": event.get('subProduct')}) if isinstance(event.get('subProduct'), str) and not event.get('subProduct') == "" else None
-        o.update({f"{var}48": event.get('screenResolution')}) if isinstance(event.get('screenResolution'), str) and not event.get('screenResolution') == "" else None
-        o.update({f"{var}50": str(obj.get('timestamp',{}).get('ms'))})
-        o.update({f"{var}52": environment.get('environment',{}).get('operatingSystem')}) if isinstance(environment, dict) and environment.get('environment',{}).get('operatingSystem') else None
-        o.update({f"{var}53": environment.get('environment',{}).get('operatingSystemVersion')}) if isinstance(environment, dict) and environment.get('environment',{}).get('operatingSystemVersion') else None
-        o.update({f"{var}67": str(obj.get('timestamp',{}).get('ms_increment'))})
-        if "application" in obj: 
-            o.update({f"{var}58": appversion})
-            o.update({f"{var}57": libraryversion})
-        return o
+        o.update({"eVars": evars}) if bool(evars) else None
+        o.update({"listProps": props}) if bool(props) else None
+        return o if bool(o) else None
+
+    lookup = { 
+        "application": {"eVar":1, "prop":1, "type":"string"},
+        "pageName": {"eVar":2, "prop":2, "type":"string"},
+        "pageType": {"eVar":3, "prop":3, "type":"string"},
+        "prevPageName": {"eVar":4, "prop":4, "type":"string"},
+        "pageURL": {"eVar":5, "prop":5, "type":"string"},
+        "channel": {"eVar":8, "prop":8, "type":"string"},
+        "category": {"eVar":9, "prop":9, "type":"string"},
+        "countryCode": {"eVar":10, "prop":10, "type":"string"},
+        "lang": {"eVar":11, "prop":11, "type":"string"},
+        "profileType": {"eVar":15, "prop":15, "type":"string"},
+        "displayMode": {"eVar":17, "prop":17, "type":"string"},
+        "terminalId": {"eVar":18, "type":"string"},
+        "languageBrowser": {"eVar":19, "prop":19, "type":"string"},
+        "internalSearchTerm": {"eVar":20, "prop":20, "type":"string"},
+        "numberOFSearchResults": {"eVar":21, "prop":21, "type":"int"},
+        "formStep": {"eVar":22, "type":"string"},
+        "eventName": {"eVar":23, "prop":23, "type":"string"},
+        "cookieLevel": {"eVar":25, "prop":25, "type":"string"},
+        "previousPageViewed": {"prop":28, "type":"string"},
+        "branchId": {"eVar":29, "prop":33, "type":"string"},
+        "offerTrackingId": {"eVar":30, "prop":30, "type":"string"},
+        "offlineClickId": {"eVar":31, "prop":31, "type":"string"},
+        "transactionId": {"eVar":32, "prop":32, "type":"string"},
+        "experiments": {"eVar":33, "prop":33, "type":"map"},
+        "pagesActions": {"prop":34, "type":"string"},
+        "error": {"eVar":35, "prop":35, "type":"string"},
+        "errorType": {"eVar":36, "prop":36, "type":"string"},
+        "formType": {"eVar":37, "prop":37, "type":"string"},
+        "formId": {"eVar":38, "prop":38, "type":"string"},
+        "formOutcome": {"eVar":39, "prop":39, "type":"string"},
+        "subProduct": {"eVar":45, "prop":45, "type":"string"},
+        "screenResolution": {"eVar":48, "prop":48, "type":"string"},
+        "appVersion": {"eVar":57, "prop":57, "type":"string"},
+        "libraryVersion": {"eVar":58, "prop":58, "type":"string"},
+        "adGroup": {"eVar":61, "prop":61, "type":"string"},
+        "keyword": {"eVar":62, "prop":62, "type":"string"},
+        "campaign": {"eVar":63, "prop":63, "type":"string"},
+        "account": {"eVar":64, "prop":64, "type":"string"},
+        "inAppBrowser": {"eVar":65, "prop":65, "type":"string"}
+    }
     
-    event = obj.get('event')
-    authenticatedstate = [ x.get('authenticatedState') for x in idmap.get('FPID') ][0] if isinstance(idmap.get('FPID'), list) else None  
-    customerid = [ x.get('id') for x in idmap.get('CustomerID') ][0] if isinstance(idmap.get('CustomerID'), list) else None
-    ecid = [ x.get('id') for x in idmap.get('ECID') ][0] if isinstance(idmap.get('ECID'), list) else None  
-    fpid = [ x.get('id') for x in idmap.get('FPID') ][0] if isinstance(idmap.get('FPID'), list) else None  
-    profileid = [ x.get('id') for x in idmap.get('ProfileID') ][0] if isinstance(idmap.get('ProfileID'), list) else None
-    
-    evar = getVars("eVar", webobj)
-    prop = getVars("prop", webobj)
-    prop.update({"prop49": webobj.get('event').get('hitid')})
-    customdimensions = {}
-    customdimensions.update({"eVars": evar})
-    customdimensions.update({"listProps": prop})
-    return customdimensions 
+    lookupcustom = getCustom(obj, environment, webobj, idmap)
+    return parseObj(lookup, lookupcustom, obj)
 
 def getEventMetrics(obj:dict, environment:dict, webobj:dict, customdimensions:dict, idmap:dict) -> dict:
     def eventRange(n:int) -> str:
@@ -384,7 +427,6 @@ def getEventMetrics(obj:dict, environment:dict, webobj:dict, customdimensions:di
     
     return buildObj(parseObj(lookup, obj))
     
-
 def getIdentification(eventdict:dict, idmap:dict) -> dict:
     d = eventdict.get('event')
     ecid = [ x.get('id') for x in idmap.get('ECID') ][0] if isinstance(idmap.get('ECID'), list) else None  
@@ -495,7 +537,7 @@ def parseResult(index:int, request:dict, filepath:str, reqbuild:dict, run:str) -
         response = json.loads("{\""+ run +"}") if re.search("^requestId", run) else run
         class_files.Files({}).writeFile({"file":f"{directory_response}/{response.get('requestId')}_{reqbuild.get('time')}.json", "content":json.dumps(response, sort_keys=False, default=str)}) if re.search("^requestId", run) else None 
         class_files.Files({}).writeFile({"file":f"{directory_log}/{reqbuild.get('time')}.json", "content":json.dumps({"request":reqbuild.get('data'), "response":response}, sort_keys=False, indent=4, default=str)})  
-        deviceStorage(f"{project_dir}/{request.get('identityMap')}/storage", reqbuild, response)
+        deviceStorage(f"{project_dir}/{request.get('device')}/storage", reqbuild, response)
         print("requestId:", response.get('requestId')) if isinstance(response, dict) else print("error:", run)
     except Exception as e:
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e) 
